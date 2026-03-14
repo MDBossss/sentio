@@ -1,4 +1,5 @@
 // Entry point for the module
+import "./styles.css";
 import("./bootstrap")
   .then((module) => {
     console.log("Player App Bootstrap loaded");

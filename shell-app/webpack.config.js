@@ -30,6 +30,9 @@ module.exports = {
   devtool: isProduction ? 'source-map' : 'cheap-module-source-map',
   resolve: {
     extensions: ['.js', '.jsx', '.json'],
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
   },
   module: {
     rules: [
@@ -42,6 +45,10 @@ module.exports = {
           },
         },
         exclude: /node_modules/,
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader', 'postcss-loader'],
       },
     ],
   },

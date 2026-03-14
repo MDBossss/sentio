@@ -27,6 +27,9 @@ module.exports = {
   devtool: isProduction ? 'source-map' : 'cheap-module-source-map',
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
   },
   module: {
     rules: [
@@ -34,6 +37,10 @@ module.exports = {
         test: /\.(ts|tsx)$/,
         use: 'ts-loader',
         exclude: /node_modules/,
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader', 'postcss-loader'],
       },
     ],
   },

@@ -4,6 +4,8 @@
  * This pattern prevents shared library collisions with module federation
  */
 
+import './styles.css';
+
 import('./bootstrap').then((module) => {
   console.log('Shell App Bootstrap loaded');
   if (typeof module.setupShellApp === 'function') {
