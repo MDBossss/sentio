@@ -9,39 +9,54 @@ export default function PlayerApp(container: HTMLElement) {
   const togglePlayPause = () => setPlaying(!playing());
 
   const PlayerContent = () => (
-    <div style={styles.player}>
-      <div style={styles.trackInfo}>
-        m<div style={styles.trackTitle}>🎵 {currentTrack()}</div>
-        <div style={styles.trackArtist}>Now Playing</div>
+    <div class="flex items-center justify-between gap-6 border-t border-white/10 bg-zinc-950/90 px-5 py-4 text-white shadow-[0_-8px_30px_rgba(0,0,0,0.35)] backdrop-blur">
+      <div class="min-w-[200px] flex-1">
+        <div class="text-xs uppercase tracking-wider text-zinc-400">Now Playing</div>
+        <div class="mt-1 flex items-center gap-2 text-sm font-semibold text-emerald-400">
+          <span>🎵</span>
+          <span class="truncate">{currentTrack()}</span>
+        </div>
       </div>
 
-      <div style={styles.controls}>
-        <button style={styles.controlButton} title="Previous">
+      <div class="flex items-center gap-3">
+        <button
+          type="button"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-lg shadow-sm transition hover:scale-105 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+          title="Previous"
+          aria-label="Previous track"
+        >
           ⏮️
         </button>
         <button
-          style={{ ...styles.controlButton, ...styles.playButton }}
+          type="button"
+          class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-xl shadow-lg shadow-emerald-500/30 transition hover:scale-105 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
           onClick={togglePlayPause}
           title={playing() ? "Pause" : "Play"}
+          aria-label={playing() ? "Pause" : "Play"}
         >
           {playing() ? "⏸️" : "▶️"}
         </button>
-        <button style={styles.controlButton} title="Next">
+        <button
+          type="button"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-lg shadow-sm transition hover:scale-105 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+          title="Next"
+          aria-label="Next track"
+        >
           ⏭️
         </button>
       </div>
 
-      <div style={styles.volumeControl}>
-        <span style={styles.volumeLabel}>🔊</span>
+      <div class="flex min-w-[180px] items-center gap-3">
+        <span class="text-base">🔊</span>
         <input
           type="range"
           min="0"
           max="100"
           value={volume()}
           onInput={(e) => setVolume(Number(e.currentTarget.value))}
-          style={styles.volumeSlider}
+          class="h-1 w-28 cursor-pointer appearance-none rounded-full bg-zinc-700 accent-emerald-400"
         />
-        <span style={styles.volumeValue}>{volume()}%</span>
+        <span class="min-w-[36px] text-xs text-zinc-400">{volume()}%</span>
       </div>
     </div>
   );
@@ -49,72 +64,3 @@ export default function PlayerApp(container: HTMLElement) {
   const dispose = render(() => <PlayerContent />, container);
   return dispose;
 }
-
-const styles = {
-  player: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#1a1a1a",
-    borderTop: "1px solid #333",
-    padding: "15px 20px",
-    gap: "20px",
-    color: "white",
-    fontSize: "14px",
-  },
-  trackInfo: {
-    flex: 1,
-    minWidth: "200px",
-  },
-  trackTitle: {
-    fontWeight: "bold",
-    color: "#1ed760",
-    marginBottom: "4px",
-  },
-  trackArtist: {
-    fontSize: "12px",
-    color: "#b3b3b3",
-  },
-  controls: {
-    display: "flex",
-    gap: "15px",
-    alignItems: "center",
-  },
-  controlButton: {
-    background: "none",
-    border: "none",
-    color: "white",
-    fontSize: "18px",
-    cursor: "pointer",
-    padding: "5px 10px",
-    transition: "transform 0.2s",
-  },
-  playButton: {
-    fontSize: "24px",
-    backgroundColor: "#1db954",
-    borderRadius: "50%",
-    width: "40px",
-    height: "40px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  volumeControl: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    minWidth: "150px",
-  },
-  volumeLabel: {
-    fontSize: "16px",
-  },
-  volumeSlider: {
-    width: "80px",
-    cursor: "pointer",
-  },
-  volumeValue: {
-    fontSize: "12px",
-    color: "#b3b3b3",
-    minWidth: "30px",
-  },
-};
