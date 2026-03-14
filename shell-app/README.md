@@ -1,16 +1,59 @@
-# React + Vite
+# Shell App - Host Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## What is the Shell App?
 
-Currently, two official plugins are available:
+The Shell App is a **React + Webpack** application that acts as the host/container for remotely loaded modules. It consumes the Search App via Module Federation and injects it into its own DOM.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Key Features
 
-## React Compiler
+- ✅ React 18
+- ✅ Module Federation consumer configuration
+- ✅ Dynamic module loading at runtime
+- ✅ Webpack 5 configuration
+- ✅ Development server with HMR
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Module Federation Configuration
 
-## Expanding the ESLint configuration
+**Consumed Remotes:**
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- `searchApp` from `http://localhost:3001/remoteEntry.js`
+
+## How It Works
+
+1. The Shell App loads at `http://localhost:3000`
+2. When the app mounts, it dynamically imports the search injector from the Search App
+3. The injector function is called with a container element ID
+4. The Search App renders inside the specified container with isolated styles (via Shadow DOM)
+
+## Development
+
+```bash
+cd shell-app
+npm install
+npm start
+```
+
+Visit `http://localhost:3000` to view the shell app with the injected search app.
+
+**Important:** The Search App must be running on `http://localhost:3001` before starting the Shell App.
+
+## Environment Variables
+
+- `SEARCH_APP_URL` - URL of the Search App's remote entry point (default: `http://localhost:3001`)
+
+## Building
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist/` directory.
+
+## Code Structure
+
+- **App.js** - Main component that handles the injection lifecycle
+- **bootstrap.js** - React app setup and mounting
+- **index.js** - Entry point with async module loading
+- **webpack.config.js** - Module Federation and build configuration
+
+See [../README.md](../README.md) for the complete project documentation.

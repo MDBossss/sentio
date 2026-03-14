@@ -1,12 +1,25 @@
 {
-  "name": "sentio",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "name": "sentio-module-federation",
+  "version": "1.0.0",
+  "description": "Module Federation example with Search App and Shell App",
+  "workspaces": [
+    "search-app",
+    "shell-app"
+  ],
   "scripts": {
-    "dev": "concurrently \"npm --prefix player-app run dev\" \"npm --prefix shell-app run dev\" \"npm --prefix library-app run dev\" \"npm --prefix search-app run dev\""
+    "install-all": "npm install && npm install --workspace=search-app && npm install --workspace=shell-app",
+    "install-ci": "npm ci && npm ci --workspace=search-app && npm ci --workspace=shell-app",
+    "dev": "npm run dev --workspaces",
+    "build": "npm run build --workspaces",
+    "start": "concurrently \"npm run search-app:start\" \"npm run shell-app:start\"",
+    "start:search": "npm run search-app:start",
+    "start:shell": "npm run shell-app:start",
+    "search-app:start": "npm start --workspace=search-app",
+    "shell-app:start": "npm start --workspace=shell-app",
+    "search-app:build": "npm run build --workspace=search-app",
+    "shell-app:build": "npm run build --workspace=shell-app"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.0"
   }
 }

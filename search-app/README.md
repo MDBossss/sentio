@@ -1,75 +1,44 @@
-# React + TypeScript + Vite
+# Search App - Exposed Remote Component
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## What is the Search App?
 
-Currently, two official plugins are available:
+The Search App is a **React + TypeScript + Webpack** application that exposes itself as a Module Federation remote. Other applications can consume it and inject its components into their DOM.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Key Features
 
-## React Compiler
+- ✅ React 18 with TypeScript
+- ✅ Module Federation setup for component exposure
+- ✅ Shadow DOM integration for style isolation
+- ✅ Webpack 5 configuration
+- ✅ Development server with HMR
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Exposed Module
 
-Note: This will impact Vite dev & build performances.
+**Module Name:** `searchApp/searchInjector`
 
-## Expanding the ESLint configuration
+**Exports:**
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- `inject(parentElementId: string)` - Mounts the Search App
+- `unmount(parentElementId: string)` - Unmounts the Search App
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Usage
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+The search app is consumed by the shell-app. See [../README.md](../README.md) for complete usage instructions.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Development
+
+```bash
+cd search-app
+npm install
+npm start
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Visit `http://localhost:3001` to test the app in standalone mode.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Building
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run build
 ```
+
+The built files will be in the `dist/` directory. The `remoteEntry.js` file is the entry point for Module Federation consumers.

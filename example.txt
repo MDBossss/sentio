@@ -1,0 +1,324 @@
+app.js shell
+
+import React, { useEffect } from "react";
+// eslint-disable-next-line import/no-unresolved
+import { inject, unmount } from "adminNext/dashboardInjector";
+
+// Importing and mounting of the remote components should be done in
+// the router pages, not in the main app.
+const parentContainerid = "shadow-dom-container";
+
+// todo: add a router here to add more pages?
+const App = () => {
+  // Mounts/unmounts the nextjs app into the "parent" container using remote "inject" function
+  // https://github.com/module-federation/module-federation-examples/tree/master/different-react-versions-isolated
+  useEffect(() => {
+    inject(parentContainerid);
+    return () => unmount(parentContainerid);
+  }, []);
+
+  return <div id={parentContainerid}></div>;
+};
+
+export default App;
+
+
+bootstrap.js shell
+
+import React from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App";
+
+/**
+ * Mounts the React app into the root element with id 'dashboard-app'.
+ */
+export function setupReactApp() {
+  const renderApp = () => {
+    const rootElement = document.getElementById("dashboard-app");
+    if (rootElement) {
+      const root = createRoot(rootElement);
+      root.render(
+        <React.StrictMode>
+          <App />
+        </React.StrictMode>
+      );
+    } else {
+      console.error("Could not find element with id 'dashboard-app'");
+    }
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", renderApp);
+  } else {
+    renderApp();
+  }
+}
+
+
+index.js shell:
+
+/* eslint-disable promise/always-return */
+// Why this file exists:
+// https://stackoverflow.com/questions/66123283/webpack-module-federation-is-not-working-with-eager-shared-libs
+// https://stackoverflow.com/questions/71738820/webpack-module-federation-error-cannot-read-properties-of-undefined-reading-c
+
+import createErrorScreen from "./errorScreen";
+
+// Check if we've already attempted a reload
+const hasAttemptedReload = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get("r") === "true";
+};
+
+// Perform hard refresh with reload parameter
+const performHardRefresh = () => {
+  const url = new URL(window.location.href);
+  url.searchParams.set("r", "true");
+  window.location.href = url.toString();
+};
+
+import("./bootstrap")
+  .then(module => {
+    console.log("Bootstrap module loaded [dashboard_app]");
+    if (typeof module.setupReactApp === "function") {
+      module.setupReactApp();
+    } else {
+      console.error("setupReactApp is not a function [dashboard_app]", module);
+    }
+  })
+  .catch(error => {
+    // Try hard refresh once, then show error screen
+    if (!hasAttemptedReload()) {
+      console.log("Module loading failed, attempting hard refresh...");
+      performHardRefresh();
+    } else {
+      console.log("Hard refresh already attempted, showing error screen");
+      createErrorScreen(error);
+    }
+  });
+
+
+genericiNJECTOR - exposing app:
+
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { StyleSheetManager } from "styled-components";
+
+import { createShadowContainer, deleteShadowContainer } from "./shadowDom";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const roots: Record<string, any> = {};
+
+export const injectElement = (
+  parentElementId: string,
+  component: React.ReactNode
+) => {
+  const { appPlaceholder, shadowRoot } = createShadowContainer(parentElementId);
+  if (appPlaceholder && shadowRoot) {
+    const root = createRoot(appPlaceholder);
+    roots[parentElementId] = root;
+    root.render(
+      // https://github.com/styled-components/styled-components/pull/1491
+      <StyleSheetManager target={shadowRoot}>{component}</StyleSheetManager>
+    );
+  }
+};
+
+export const unmountElement = (parentElementId: string) => {
+  deleteShadowContainer(parentElementId);
+  const root = roots[parentElementId];
+  if (root) {
+    root.unmount();
+    delete roots[parentElementId];
+  }
+};
+
+
+
+dashboard injector - exposing app:
+
+import { DashboardRemote } from "pages/e/[eventId]/dashboard";
+
+import { injectElement, unmountElement } from "../../utils/genericInjector";
+
+export const inject = (parentElementId: string) =>
+  injectElement(parentElementId, <DashboardRemote />);
+
+export const unmount = (parentElementId: string) =>
+  unmountElement(parentElementId);
+
+
+
+netx config - exposin app:
+
+import NextFederationPlugin from "@module-federation/nextjs-mf";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH,
+  reactStrictMode: true,
+  compiler: {
+    styledComponents: true,
+  },
+  // This is required to support PostHog trailing slash API requests
+  skipTrailingSlashRedirect: true,
+  webpack(config, options) {
+    if (!options.isServer) {
+      config.plugins.push(
+        new NextFederationPlugin({
+          name: "adminNext",
+          remotes: {},
+          filename: "static/chunks/remoteEntry.js",
+          exposes: {
+            "./dashboardInjector":
+              "./components/injectors/dashboardInjector.tsx",
+          },
+        })
+      );
+    }
+
+    // Prevent dual styled-components instances with SC v6 exports field
+    config.resolve.alias["styled-components"] = path.resolve(
+      __dirname,
+      "node_modules",
+      "styled-components"
+    );
+
+    // Used to change public path which will be used to load the chunks, defaults to host of the page
+    config.output.publicPath = `${process.env.NEXT_PUBLIC_BASE_PATH}/_next/`;
+    return config;
+  },
+  async headers() {
+    return [
+      {
+        source: "/_next/static/chunks/remoteEntry.js",
+        headers: [
+          {
+            key: "Cache-Control",
+            value:
+              "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+          },
+          {
+            key: "Expires",
+            value: "-1",
+          },
+        ],
+      },
+    ];
+  },
+  async rewrites() {
+    const posthogRewrites = [
+      // rewrites as reverse proxies - https://posthog.com/docs/advanced/proxy/nextjs
+      {
+        source: "/api/is/static/:path*",
+        destination: "https://eu-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/api/is/:path*",
+        destination: "https://eu.i.posthog.com/:path*",
+      },
+    ];
+
+    const apiRewrites = [
+      {
+        source: process.env.NEXT_PUBLIC_API_ENDPOINT,
+        destination: process.env.API_HOST,
+        basePath: false,
+      },
+    ];
+
+    // In production: only PostHog rewrites
+    if (process.env.NODE_ENV === "production") {
+      return posthogRewrites;
+    }
+
+    // In development: both API and PostHog rewrites work
+    return [...apiRewrites, ...posthogRewrites];
+  },
+};
+
+export default nextConfig;
+
+
+
+
+webpack config - shell app:
+
+const path = require("path");
+const { webpackConfig, merge } = require("shakapacker");
+const vueConfig = require("./rules/vue");
+const webpack = require("webpack");
+const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
+
+const baseRemoteUrl = process.env.ADMIN_NEXT_URL;
+
+const config = {
+  plugins: [
+    new webpack.ProvidePlugin({
+      $: "jquery",
+      jQuery: "jquery"
+    }),
+    new ModuleFederationPlugin({
+      name: "admin",
+      filename: "remoteEntry.js",
+      remotes: {
+        adminNext: `adminNext@${baseRemoteUrl}/_next/static/chunks/remoteEntry.js`
+      }
+      // Explained shared section
+      // https://webpack.js.org/plugins/module-federation-plugin/#eager
+      // How does version "picking" work
+      // https://stackoverflow.com/questions/65634232/how-does-module-federation-choose-which-dependency-version-to-use
+      // https://github.com/webpack/webpack/blob/0c3df8ea25087effbf03e21a13363acac82c7b96/lib/sharing/ShareRuntimeModule.js#L90
+    })
+  ],
+  resolve: {
+    extensions: [
+      ".vue",
+      ".mjs",
+      ".jsx",
+      ".js",
+      ".esm.js",
+      ".sass",
+      ".scss",
+      ".css",
+      ".module.sass",
+      ".module.scss",
+      ".module.css",
+      ".png",
+      ".svg",
+      ".gif",
+      ".jpeg",
+      ".jpg"
+    ],
+    alias: {
+      // TODO: Remove when react-virtualized is replaced.
+      // react-virtualized imports { findDOMNode } from 'react-dom', which was
+      // removed in React 19. This alias redirects all react-dom imports to a
+      // compat module that re-exports everything plus a findDOMNode shim.
+      "real-react-dom": path.resolve(__dirname, "../../node_modules/react-dom"),
+      "react-dom$": path.resolve(
+        __dirname,
+        "../../app/javascript/polyfills/react-dom-compat.js"
+      ),
+      // @b2match/ui v8.5.0 uses defaultProps on styled-components (function
+      // components in SC v6). React 19 no longer applies defaultProps via
+      // createElement for function components. This alias redirects imports
+      // to a compat wrapper that restores defaults using SC's .attrs().
+      "@b2match/ui-raw": path.resolve(
+        __dirname,
+        "../../node_modules/@b2match/ui"
+      ),
+      "@b2match/ui$": path.resolve(
+        __dirname,
+        "../../app/javascript/polyfills/b2match-ui-compat.js"
+      )
+    }
+  },
+  target: "web"
+};
+
+module.exports = merge(vueConfig, webpackConfig, config);
