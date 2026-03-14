@@ -3,42 +3,43 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { container: { ModuleFederationPlugin } } = require('webpack');
 
 const isProduction = process.env.NODE_ENV === 'production';
-const searchAppUrl = process.env.SEARCH_APP_URL || 'http://localhost:3001';
-const libraryAppUrl = process.env.LIBRARY_APP_URL || 'http://localhost:3002';
-const playerAppUrl = process.env.PLAYER_APP_URL || 'http://localhost:3003';
+const publicPath = process.env.PUBLIC_PATH || 'http://localhost:3003/';
 
 module.exports = {
   mode: isProduction ? 'production' : 'development',
-  entry: './src/index.js',
+  entry: './src/index.ts',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: '[name].[contenthash:8].js',
     chunkFilename: '[name].[contenthash:8].chunk.js',
-    publicPath: isProduction ? '/shell-app/' : '/',
+    publicPath: publicPath,
     clean: true,
   },
   devServer: {
-    port: 3000,
+    port: 3003,
     hot: true,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
       'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
     },
-    historyApiFallback: true,
   },
   devtool: isProduction ? 'source-map' : 'cheap-module-source-map',
   resolve: {
-    extensions: ['.js', '.jsx', '.json'],
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
   },
   module: {
     rules: [
       {
-        test: /\.jsx?$/,
+        test: /\.(ts|tsx)$/,
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-react'],
+            presets: [
+              ['@babel/preset-env', { targets: 'defaults' }],
+              '@babel/preset-typescript',
+              'babel-preset-solid',
+            ],
           },
         },
         exclude: /node_modules/,
@@ -47,16 +48,13 @@ module.exports = {
   },
   plugins: [
     new ModuleFederationPlugin({
-      name: 'shellApp',
+      name: 'playerApp',
       filename: 'remoteEntry.js',
-      remotes: {
-        searchApp: `searchApp@${searchAppUrl}/remoteEntry.js`,
-        libraryApp: `libraryApp@${libraryAppUrl}/remoteEntry.js`,
-        playerApp: `playerApp@${playerAppUrl}/remoteEntry.js`,
+      exposes: {
+        './playerInjector': './src/injectors/playerInjector.tsx',
       },
       shared: {
-        react: { singleton: true, requiredVersion: false },
-        'react-dom': { singleton: true, requiredVersion: false },
+        'solid-js': { singleton: true, requiredVersion: false },
       },
     }),
     new HtmlWebpackPlugin({

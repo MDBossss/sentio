@@ -3,9 +3,11 @@ import React, { useEffect } from "react";
 // Lazy load the injectors from the remotes
 const searchInjectorPromise = import("searchApp/searchInjector");
 const libraryInjectorPromise = import("libraryApp/libraryInjector");
+const playerInjectorPromise = import("playerApp/playerInjector");
 
 const searchContainerId = "search-container";
 const libraryContainerId = "library-container";
+const playerContainerId = "player-container";
 
 /**
  * Shell App - Consumes Search App and Library App injectors
@@ -38,8 +40,21 @@ const App = () => {
       }
     };
 
+    const initializePlayer = async () => {
+      try {
+        const module = await playerInjectorPromise;
+        if (mounted && typeof module.inject === "function") {
+          console.log("Injecting Player App...");
+          module.inject(playerContainerId);
+        }
+      } catch (error) {
+        console.error("Failed to load Player App injector:", error);
+      }
+    };
+
     initializeSearch();
     initializeLibrary();
+    initializePlayer();
 
     return () => {
       mounted = false;
@@ -51,6 +66,11 @@ const App = () => {
       libraryInjectorPromise.then((module) => {
         if (typeof module.unmount === "function") {
           module.unmount(libraryContainerId);
+        }
+      });
+      playerInjectorPromise.then((module) => {
+        if (typeof module.unmount === "function") {
+          module.unmount(playerContainerId);
         }
       });
     };
@@ -70,6 +90,10 @@ const App = () => {
           <div id={searchContainerId} style={styles.searchContainer} />
         </main>
       </div>
+
+      <footer style={styles.footer}>
+        <div id={playerContainerId} style={styles.playerContainer} />
+      </footer>
     </div>
   );
 };
@@ -120,6 +144,15 @@ const styles = {
   searchContainer: {
     flex: 1,
     overflow: "auto",
+  },
+  footer: {
+    height: "auto",
+    minHeight: "90px",
+    backgroundColor: "#181818",
+    borderTop: "1px solid #282828",
+  },
+  playerContainer: {
+    width: "100%",
   },
 };
 
