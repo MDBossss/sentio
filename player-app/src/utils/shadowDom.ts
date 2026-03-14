@@ -5,13 +5,13 @@ export const createShadowContainer = (parentElementId: string) => {
     return { appPlaceholder: null, shadowRoot: null };
   }
 
-  const host = document.createElement('div');
+  const host = document.createElement("div");
   host.id = `${parentElementId}-host`;
   parentElement.appendChild(host);
 
-  const shadowRoot = host.attachShadow({ mode: 'open' });
+  const shadowRoot = host.attachShadow({ mode: "open" });
 
-  const appPlaceholder = document.createElement('div');
+  const appPlaceholder = document.createElement("div");
   appPlaceholder.id = `${parentElementId}-app`;
   shadowRoot.appendChild(appPlaceholder);
 
@@ -26,7 +26,7 @@ export const deleteShadowContainer = (parentElementId: string) => {
 };
 
 export const styleShadowContainer = (shadowRoot: ShadowRoot) => {
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.textContent = `
     * {
       box-sizing: border-box;

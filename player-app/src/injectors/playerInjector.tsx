@@ -1,13 +1,14 @@
-import { createSignal, createEffect } from 'solid-js';
-import PlayerApp from '../components/PlayerApp';
-import { createShadowContainer, deleteShadowContainer, styleShadowContainer } from '../utils/shadowDom';
+import { createSignal, createEffect } from "solid-js";
+import PlayerApp from "../components/PlayerApp";
+import {
+  createShadowContainer,
+  deleteShadowContainer,
+  styleShadowContainer,
+} from "../utils/shadowDom";
 
 let playerInstance: any = null;
 
-export const injectElement = (
-  parentElementId: string,
-  component: any
-) => {
+export const injectElement = (parentElementId: string, component: any) => {
   const { appPlaceholder, shadowRoot } = createShadowContainer(parentElementId);
   if (appPlaceholder && shadowRoot) {
     styleShadowContainer(shadowRoot);
@@ -24,7 +25,7 @@ export const unmountElement = (parentElementId: string) => {
 
 export const inject = (parentElementId: string) => {
   injectElement(parentElementId, (container: HTMLElement) => {
-    import('../components/PlayerApp').then((mod) => {
+    import("../components/PlayerApp").then((mod) => {
       const PlayerComponent = mod.default;
       const cleanup = PlayerComponent(container);
       return { dispose: cleanup };

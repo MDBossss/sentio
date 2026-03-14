@@ -19,6 +19,7 @@ The Player App is a **Solid.js + TypeScript + Webpack** application that exposes
 **Module Name:** `playerApp/playerInjector`
 
 **Exports:**
+
 - `inject(parentElementId: string)` - Mounts the Player App
 - `unmount(parentElementId: string)` - Unmounts the Player App
 

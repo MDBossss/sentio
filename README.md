@@ -83,7 +83,6 @@ sentio/
 - Built with React + TypeScript
 - Main content area for search results and album display
 
-
 ### Library App (Remote - Vue.js)
 
 - Exposes an injector function via Module Federation
@@ -145,18 +144,21 @@ Visit `http://localhost:3000` to see the Spotify-like layout with all remote app
 ### Option 2: Run individual apps
 
 **Terminal 1 - Search App:**
+
 ```bash
 npm run search-app:start
 # App runs on http://localhost:3001
 ```
 
 **Terminal 2 - Library App:**
+
 ```bash
 npm run library-app:start
 # App runs on http://localhost:3002
 ```
 
 **Terminal 3 - Player App:**
+
 ```bash
 npm run player-app:start
 # App runs on http://localhost:3003
@@ -195,24 +197,28 @@ npm run shell-app:start
 ### Option 3: Run from individual app directories
 
 **Terminal 1 - Search App:**
+
 ```bash
 cd search-app
 npm start
 ```
 
 **Terminal 2 - Library App:**
+
 ```bash
 cd library-app
 npm start
 ```
 
 **Terminal 3 - Player App:**
+
 ```bash
 cd player-app
 npm start
 ```
 
 **Terminal 4 - Shell App:**
+
 ```bash
 cd shell-app
 npm start
