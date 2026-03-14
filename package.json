@@ -4,20 +4,25 @@
   "description": "Module Federation example with Search App and Shell App",
   "workspaces": [
     "search-app",
-    "shell-app"
+    "shell-app",
+    "library-app"
   ],
   "scripts": {
-    "install-all": "npm install && npm install --workspace=search-app && npm install --workspace=shell-app",
-    "install-ci": "npm ci && npm ci --workspace=search-app && npm ci --workspace=shell-app",
+    "install-all": "npm install && npm install --workspace=search-app && npm install --workspace=shell-app && npm install --workspace=library-app",
+    "install-ci": "npm ci && npm ci --workspace=search-app && npm ci --workspace=shell-app && npm ci --workspace=library-app",
     "dev": "npm run dev --workspaces",
     "build": "npm run build --workspaces",
-    "start": "concurrently \"npm run search-app:start\" \"npm run shell-app:start\"",
+    "start": "concurrently \"npm run search-app:start\" \"npm run shell-app:start\" \"npm run library-app:start\"",
     "start:search": "npm run search-app:start",
     "start:shell": "npm run shell-app:start",
+    "start:library": "npm run library-app:start",
+    "stop": "pkill -f \"webpack serve\" || true && echo \"All apps stopped\"",
     "search-app:start": "npm start --workspace=search-app",
     "shell-app:start": "npm start --workspace=shell-app",
+    "library-app:start": "npm start --workspace=library-app",
     "search-app:build": "npm run build --workspace=search-app",
-    "shell-app:build": "npm run build --workspace=shell-app"
+    "shell-app:build": "npm run build --workspace=shell-app",
+    "library-app:build": "npm run build --workspace=library-app"
   },
   "devDependencies": {
     "concurrently": "^8.2.0"

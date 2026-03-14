@@ -1,10 +1,10 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { container: { ModuleFederationPlugin } } = require('webpack');
+const { VueLoaderPlugin } = require('vue-loader');
 
 const isProduction = process.env.NODE_ENV === 'production';
-const searchAppUrl = process.env.SEARCH_APP_URL || 'http://localhost:3001';
-const libraryAppUrl = process.env.LIBRARY_APP_URL || 'http://localhost:3002';
+const publicPath = process.env.PUBLIC_PATH || 'http://localhost:3002/';
 
 module.exports = {
   mode: isProduction ? 'production' : 'development',
@@ -13,50 +13,59 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: '[name].[contenthash:8].js',
     chunkFilename: '[name].[contenthash:8].chunk.js',
-    publicPath: isProduction ? '/shell-app/' : '/',
+    publicPath: publicPath,
     clean: true,
   },
   devServer: {
-    port: 3000,
+    port: 3002,
     hot: true,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
       'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
     },
-    historyApiFallback: true,
   },
   devtool: isProduction ? 'source-map' : 'cheap-module-source-map',
   resolve: {
-    extensions: ['.js', '.jsx', '.json'],
+    extensions: ['.vue', '.js', '.json'],
+    alias: {
+      vue: 'vue/dist/vue.esm-bundler.js',
+    },
   },
   module: {
     rules: [
       {
-        test: /\.jsx?$/,
+        test: /\.vue$/,
+        loader: 'vue-loader',
+      },
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-react'],
+            presets: ['@babel/preset-env'],
           },
         },
-        exclude: /node_modules/,
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
       },
     ],
   },
   plugins: [
     new ModuleFederationPlugin({
-      name: 'shellApp',
+      name: 'libraryApp',
       filename: 'remoteEntry.js',
-      remotes: {
-        searchApp: `searchApp@${searchAppUrl}/remoteEntry.js`,
-        libraryApp: `libraryApp@${libraryAppUrl}/remoteEntry.js`,
+      exposes: {
+        './libraryInjector': './src/injectors/libraryInjector.js',
       },
       shared: {
-        react: { singleton: true, requiredVersion: false },
-        'react-dom': { singleton: true, requiredVersion: false },
+        vue: { singleton: true, requiredVersion: false },
       },
     }),
+    new VueLoaderPlugin(),
     new HtmlWebpackPlugin({
       template: './public/index.html',
       favicon: './public/favicon.ico',
