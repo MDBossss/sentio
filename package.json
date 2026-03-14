@@ -1,0 +1,12 @@
+{
+  "name": "sentio",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm --prefix player-app run dev\" \"npm --prefix shell-app run dev\" \"npm --prefix library-app run dev\" \"npm --prefix search-app run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
