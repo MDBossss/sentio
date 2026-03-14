@@ -38,7 +38,7 @@ sentio/
 │   │   ├── components/    # Solid.js components
 │   │   ├── injectors/     # Injector that exposes the app
 │   │   ├── utils/         # Shadow DOM utilities
-│   │   ├── bootstrap.ts   # Bootstrap function
+│   │   ├── bootstrap.tsx  # Bootstrap function
 │   │   └── index.ts       # Entry point
 │   ├── public/            # Static files
 │   ├── webpack.config.js  # Webpack config with Module Federation
@@ -73,39 +73,34 @@ sentio/
 └────────────────────────────────────────────────────────────────────┘
 ```
 
-## How It Works
+## How It Works (Shared Pattern Across All Apps)
 
-### Search App (Remote - React)
+All three remotes (search, library, player) follow the same flow. The shell app follows a matching pattern to load them.
 
-- Exposes an injector function via Module Federation
-- Uses Shadow DOM to isolate styles and prevent conflicts
-- Runs on port **3001** (configurable via `SEARCH_APP_URL`)
-- Built with React + TypeScript
-- Main content area for search results and album display
+1) **Module Federation loads a remote injector**  
+   The host (`shell-app`) dynamically imports each remote injector at runtime. The injector is the single entry point used by the host to mount/unmount the remote.
 
-### Library App (Remote - Vue.js)
+2) **Injector mounts the remote into a container**  
+   Each injector creates a Shadow DOM container to isolate styles, mounts its framework component (React/Vue/Solid), and keeps a reference to unmount later.
 
-- Exposes an injector function via Module Federation
-- Uses Shadow DOM to isolate styles and prevent conflicts
-- Runs on port **3002** (configurable via `LIBRARY_APP_URL`)
-- Built with Vue.js 3 + Single File Components
-- Left sidebar showing albums/library
+3) **`index` and `bootstrap` enable standalone dev**  
+   Each remote app has:
+   - `index.*` that lazy-loads `bootstrap.*`
+   - `bootstrap.*` that mounts the app into a local DOM element for standalone testing (`/public/index.html`)
 
-### Player App (Remote - Solid.js)
-
-- Exposes an injector function via Module Federation
-- Uses Shadow DOM to isolate styles and prevent conflicts
-- Runs on port **3003** (configurable via `PLAYER_APP_URL`)
-- Built with Solid.js + TypeScript
-- Bottom footer with play/pause controls, volume slider, and track info
+This exact approach applies to **search-app**, **library-app**, and **player-app**. The only differences are the framework-specific render/mount calls and root element IDs.
 
 ### Shell App (Host - React)
-
-- Consumes Search App, Library App, and Player App injectors via Module Federation
-- Orchestrates all remote apps with Spotify-like layout
-- Left sidebar for library, main content for search, footer for player
-- Dynamically imports all injectors at runtime
+- Dynamically imports `searchApp/searchInjector`, `libraryApp/libraryInjector`, `playerApp/playerInjector`
+- Calls `inject(containerId)` to mount each remote
+- Calls `unmount(containerId)` on cleanup
 - Runs on port **3000**
+
+### Remote Apps (Search, Library, Player)
+- Expose an injector function via Module Federation
+- Use Shadow DOM to isolate styles and avoid conflicts
+- Run on ports **3001**, **3002**, **3003** respectively
+- Implement identical `inject`/`unmount` interfaces
 
 ## Installation
 
@@ -143,84 +138,19 @@ Visit `http://localhost:3000` to see the Spotify-like layout with all remote app
 
 ### Option 2: Run individual apps
 
-**Terminal 1 - Search App:**
+Use the same command pattern for any app (search, library, player, shell):
 
 ```bash
 npm run search-app:start
 # App runs on http://localhost:3001
 ```
 
-**Terminal 2 - Library App:**
+### Option 3: Run from an individual app directory
 
-```bash
-npm run library-app:start
-# App runs on http://localhost:3002
-```
-
-**Terminal 3 - Player App:**
-
-```bash
-npm run player-app:start
-# App runs on http://localhost:3003
-```
-
-**Terminal 4 - Shell App:**
-
-```bash
-npm run shell-app:start
-# App runs on http://localhost:3000
-```
-
-### Option 3: Run from individual app directories
-
-**Terminal 1 - Search App:**
+Use the same command pattern for any app:
 
 ```bash
 cd search-app
-npm start
-```
-
-**Terminal 2 - Library App:**
-
-```bash
-cd library-app
-npm start
-```
-
-**Terminal 3 - Shell App:**
-
-```bash
-npm run shell-app:start
-# App runs on http://localhost:3000
-```
-
-### Option 3: Run from individual app directories
-
-**Terminal 1 - Search App:**
-
-```bash
-cd search-app
-npm start
-```
-
-**Terminal 2 - Library App:**
-
-```bash
-cd library-app
-npm start
-```
-
-**Terminal 3 - Player App:**
-
-```bash
-cd player-app
-npm start
-```
-
-**Terminal 4 - Shell App:**
-
-```bash
-cd shell-app
 npm start
 ```
 
@@ -296,47 +226,151 @@ remotes: {
 }
 ```
 
-## Key Files Explained
+## Key Files Explained (Shared Approach for All Apps)
 
-### Search App Injector (`search-app/src/injectors/searchInjector.tsx`)
+The **search**, **library**, and **player** remotes all use the same three-file pattern:
 
-Exports:
+1) `index.*` → lazy-loads `bootstrap.*`  
+2) `bootstrap.*` → mounts the app for standalone dev  
+3) `injectors/*Injector.*` → the host-facing API to mount/unmount via Module Federation
 
-- `inject(parentElementId)` - Mounts the search app into a container
-- `unmount(parentElementId)` - Unmounts and cleans up the search app
+This same pattern works across all apps; only the framework-specific mount code and element IDs differ.
 
-### Library App Injector (`library-app/src/injectors/libraryInjector.js`)
+### `index.*` (all remotes)
+The entry point defers work to `bootstrap` so Module Federation can initialize shared deps before the app mounts.
 
-Exports:
+Example from `search-app/src/index.ts`:
+```typescript
+// Entry point for the module
+import("./bootstrap")
+  .then((module) => {
+    console.log("Search App Bootstrap loaded");
+    if (typeof module.setupSearchApp === "function") {
+      module.setupSearchApp();
+    }
+  })
+  .catch((error) => {
+    console.error("Failed to load Search App Bootstrap:", error);
+  });
+```
 
-- `inject(parentElementId)` - Mounts the library app into a container
-- `unmount(parentElementId)` - Unmounts and cleans up the library app
+### `bootstrap.*` (all remotes)
+Bootstraps standalone mode by rendering into a local DOM element. This is used when running a remote app by itself (not through the shell).
 
-### Player App Injector (`player-app/src/injectors/playerInjector.tsx`)
+Example from `search-app/src/bootstrap.ts`:
+```typescript
+export function setupSearchApp() {
+  const renderApp = () => {
+    const rootElement = document.getElementById("search-app");
+    if (rootElement) {
+      const { SearchApp } = require("./components/SearchApp");
+      const root = createRoot(rootElement);
+      root.render(
+        React.createElement(
+          React.StrictMode,
+          null,
+          React.createElement(SearchApp.default),
+        ),
+      );
+    } else {
+      console.error("Could not find element with id 'search-app'");
+    }
+  };
 
-Exports:
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", renderApp);
+  } else {
+    renderApp();
+  }
+}
+```
 
-- `inject(parentElementId)` - Mounts the player app into a container
-- `unmount(parentElementId)` - Unmounts and cleans up the player app
+### `injectors/*Injector.*` (all remotes)
+This is the **Module Federation contract**. The shell loads these modules and calls `inject(containerId)` / `unmount(containerId)`.
 
-### Shell App (`shell-app/src/App.js`)
+Example from `search-app/src/injectors/searchInjector.tsx`:
+```typescript
+export const injectElement = (
+  parentElementId: string,
+  component: React.ReactNode
+) => {
+  const { appPlaceholder, shadowRoot } = createShadowContainer(parentElementId);
+  if (appPlaceholder && shadowRoot) {
+    styleShadowContainer(shadowRoot);
+    const root = createRoot(appPlaceholder);
+    roots[parentElementId] = root;
+    root.render(component);
+  }
+};
 
-- Dynamically imports both injectors at runtime
-- Handles mounting and cleanup for both remote apps
-- Provides containers (`search-container` and `library-container`) where the remote apps render
+export const inject = (parentElementId: string) =>
+  injectElement(parentElementId, <SearchApp />);
+
+export const unmount = (parentElementId: string) =>
+  unmountElement(parentElementId);
+```
+
+The library and player injectors follow the same interface:
+- `library-app/src/injectors/libraryInjector.js`
+- `player-app/src/injectors/playerInjector.tsx`
+
+### Shell Host Integration (`shell-app/src/App.js`)
+The shell loads each injector once and mounts/remounts them into layout containers:
+
+```javascript
+const searchInjectorPromise = import("searchApp/searchInjector");
+const libraryInjectorPromise = import("libraryApp/libraryInjector");
+const playerInjectorPromise = import("playerApp/playerInjector");
+
+const searchContainerId = "search-container";
+const libraryContainerId = "library-container";
+const playerContainerId = "player-container";
+
+useEffect(() => {
+  let mounted = true;
+
+  const initializeSearch = async () => {
+    const module = await searchInjectorPromise;
+    if (mounted && typeof module.inject === "function") {
+      module.inject(searchContainerId);
+    }
+  };
+
+  const initializeLibrary = async () => {
+    const module = await libraryInjectorPromise;
+    if (mounted && typeof module.inject === "function") {
+      module.inject(libraryContainerId);
+    }
+  };
+
+  const initializePlayer = async () => {
+    const module = await playerInjectorPromise;
+    if (mounted && typeof module.inject === "function") {
+      module.inject(playerContainerId);
+    }
+  };
+
+  initializeSearch();
+  initializeLibrary();
+  initializePlayer();
+
+  return () => {
+    mounted = false;
+    searchInjectorPromise.then((module) => module.unmount?.(searchContainerId));
+    libraryInjectorPromise.then((module) => module.unmount?.(libraryContainerId));
+    playerInjectorPromise.then((module) => module.unmount?.(playerContainerId));
+  };
+}, []);
+```
 
 ### Shadow DOM Utilities
+Each remote uses `utils/shadowDom.*` to create an isolated mount point. This prevents CSS leakage between host/remote apps and keeps framework styles scoped.
 
-**Search App** (`search-app/src/utils/shadowDom.ts`)
+- `search-app/src/utils/shadowDom.ts`
+- `library-app/src/utils/shadowDom.js`
+- `player-app/src/utils/shadowDom.ts`
 
-- Creates isolated Shadow DOM containers
-- Prevents style conflicts between the host and remote apps
-- Manages component lifecycle
-
-**Library App** (`library-app/src/utils/shadowDom.js`)
-
-- Same Shadow DOM isolation for Vue.js components
-- Compatible with both React and Vue.js apps
+This shadow DOM layer is the foundation for safely mixing React, Vue, and Solid in the same page.
 
 ## Development
 
