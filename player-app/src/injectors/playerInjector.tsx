@@ -7,11 +7,37 @@ import {
 
 let playerInstance: any = null;
 
+const THEME_EVENT = "sentio-theme-change";
+const THEME_STORAGE_KEY = "sentio-theme";
+const themeListeners: Record<string, (event: Event) => void> = {};
+
+const applyTheme = (shadowRoot: ShadowRoot, theme: string) => {
+  console.log("[player-app] apply theme", theme);
+  shadowRoot.host.classList.toggle("dark", theme === "dark");
+};
+
 export const injectElement = (parentElementId: string, component: any) => {
   const { appPlaceholder, shadowRoot } = createShadowContainer(parentElementId);
   if (appPlaceholder && shadowRoot) {
     styleShadowContainer(shadowRoot);
     injectTailwindStyles(shadowRoot);
+
+    const storedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "dark";
+    console.log("[player-app] initial theme", storedTheme);
+    applyTheme(shadowRoot, storedTheme);
+
+    const listener = (event: Event) => {
+      const customEvent = event as CustomEvent<{ theme?: string }>;
+      const theme = customEvent?.detail?.theme;
+      console.log("[player-app] theme event received", theme);
+      if (theme) {
+        applyTheme(shadowRoot, theme);
+      }
+    };
+
+    window.addEventListener(THEME_EVENT, listener);
+    themeListeners[parentElementId] = listener;
+
     playerInstance = component(appPlaceholder);
   }
 };
@@ -23,6 +49,11 @@ const injectTailwindStyles = (shadowRoot: ShadowRoot) => {
 };
 
 export const unmountElement = (parentElementId: string) => {
+  const listener = themeListeners[parentElementId];
+  if (listener) {
+    window.removeEventListener(THEME_EVENT, listener);
+    delete themeListeners[parentElementId];
+  }
   if (playerInstance) {
     playerInstance?.dispose?.();
   }

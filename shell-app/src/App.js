@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 
 // Lazy load the injectors from the remotes
 const searchInjectorPromise = import("searchApp/searchInjector");
@@ -13,8 +13,48 @@ const playerContainerId = "player-container";
  * Shell App - Consumes Search App and Library App injectors
  */
 const App = () => {
+  const currentThemeRef = useRef("dark");
+
   useEffect(() => {
     let mounted = true;
+
+    const applyTheme = (theme) => {
+      console.log("[Shell] applyTheme:", theme);
+      const root = document.documentElement;
+      root.classList.toggle("dark", theme === "dark");
+      localStorage.setItem("sentio-theme", theme);
+      currentThemeRef.current = theme;
+      window.dispatchEvent(
+        new CustomEvent("sentio-theme-change", { detail: { theme } })
+      );
+    };
+
+    const getInitialTheme = () => {
+      const stored = localStorage.getItem("sentio-theme");
+      if (stored === "light" || stored === "dark") {
+        console.log("[Shell] getInitialTheme: stored", stored);
+        return stored;
+      }
+      const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
+      const fallback = prefersDark ? "dark" : "light";
+      console.log("[Shell] getInitialTheme: fallback", fallback);
+      return fallback;
+    };
+
+    const handleThemeRequest = (event) => {
+      const detail = event?.detail || {};
+      console.log("[Shell] theme request:", detail);
+      if (detail.theme === "light" || detail.theme === "dark") {
+        applyTheme(detail.theme);
+        return;
+      }
+      if (detail.toggle) {
+        applyTheme(currentThemeRef.current === "dark" ? "light" : "dark");
+      }
+    };
+
+    applyTheme(getInitialTheme());
+    window.addEventListener("sentio-theme-request", handleThemeRequest);
 
     const initializeSearch = async () => {
       try {
@@ -57,6 +97,7 @@ const App = () => {
     initializePlayer();
 
     return () => {
+      window.removeEventListener("sentio-theme-request", handleThemeRequest);
       mounted = false;
       searchInjectorPromise.then((module) => {
         if (typeof module.unmount === "function") {
@@ -77,7 +118,7 @@ const App = () => {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-950 text-white">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
       <div className="flex flex-1 gap-6 p-6">
         <aside className="shrink-0">
           <div id={libraryContainerId} className="h-full overflow-hidden" />

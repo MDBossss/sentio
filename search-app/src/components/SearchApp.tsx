@@ -1,5 +1,11 @@
-import React, { useMemo } from "react";
-import { Sparkles } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Sparkles, Sun, Moon } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const getTimeOfDay = () => {
   const hour = new Date().getHours();
@@ -22,36 +28,92 @@ const SearchApp: React.FC = () => {
     return timePresets[key] ?? timePresets.evening;
   }, []);
 
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("sentio-theme");
+    const initialTheme = storedTheme === "light" ? "light" : "dark";
+    console.log("[sentio][search] initial theme from storage:", storedTheme);
+    setTheme(initialTheme);
+  }, []);
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent).detail as {
+        theme?: "dark" | "light";
+      };
+      console.log("[sentio][search] theme change event:", detail);
+      if (detail?.theme) {
+        setTheme(detail.theme);
+      }
+    };
+
+    window.addEventListener("sentio-theme-change", handler);
+    return () => window.removeEventListener("sentio-theme-change", handler);
+  }, []);
+
+  const broadcastTheme = (nextTheme: "dark" | "light") => {
+    console.log("[sentio][search] requesting theme:", nextTheme);
+    setTheme(nextTheme);
+    window.dispatchEvent(
+      new CustomEvent("sentio-theme-request", { detail: { theme: nextTheme } })
+    );
+  };
+
   return (
-    <div className="h-full space-y-6 text-white">
+    <div className="h-full space-y-6 text-foreground">
       <div className="flex items-center justify-between gap-6">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-zinc-500">
+          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
             Your space
           </p>
-          <h1 className="mt-2 text-3xl font-semibold text-white">
+          <h1 className="mt-2 text-3xl font-semibold text-foreground">
             Welcome, Joey
           </h1>
-          <p className="mt-3 max-w-xl text-sm text-zinc-400">
+          <p className="mt-3 max-w-xl text-sm text-muted-foreground">
             Describe your vibe and Sentio will craft a playlist that matches
             your mood.
           </p>
         </div>
-        <div
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 text-sm font-semibold text-emerald-300"
-          aria-label="User avatar"
-        >
-          J
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 text-sm font-semibold text-emerald-300 transition hover:bg-white/10"
+              aria-label="User profile"
+            >
+              J
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="w-56 rounded-2xl border border-border/60 bg-popover/95 p-2 text-popover-foreground shadow-xl shadow-black/40 backdrop-blur"
+          >
+            <DropdownMenuItem
+              onClick={() => broadcastTheme("light")}
+              className="gap-2 rounded-xl focus:bg-white/10"
+            >
+              <Sun size={14} className="text-emerald-400" />
+              Light mode
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => broadcastTheme("dark")}
+              className="gap-2 rounded-xl focus:bg-white/10"
+            >
+              <Moon size={14} className="text-emerald-400" />
+              Dark mode
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      <section className="rounded-3xl border border-white/10 bg-zinc-900/40 p-8 shadow-2xl shadow-black/40 backdrop-blur">
+      <section className="rounded-3xl border border-border/60 bg-card/40 p-8 shadow-2xl shadow-black/40 backdrop-blur">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-zinc-500">
+            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
               AI vibe prompt
             </p>
-            <h2 className="mt-2 text-2xl font-semibold text-white">
+            <h2 className="mt-2 text-2xl font-semibold text-foreground">
               Describe your mood
             </h2>
           </div>
@@ -64,20 +126,20 @@ const SearchApp: React.FC = () => {
           </button>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-white/10 bg-zinc-950/70 p-4">
+        <div className="mt-6 rounded-2xl border border-border/60 bg-muted/40 p-4">
           <textarea
             rows={5}
             placeholder="Tell Sentio the vibe... dreamy synths, late-night drive, soft percussion, no vocals."
-            className="w-full resize-none rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-emerald-400/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
+            className="w-full resize-none rounded-2xl border border-border/60 bg-background/40 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-emerald-400/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/30"
           />
         </div>
 
-        <div className="mt-6 border-t border-white/10 pt-5">
+        <div className="mt-6 border-t border-border/60 pt-5">
           <div className="flex items-center justify-between">
-            <p className="text-xs uppercase tracking-widest text-zinc-500">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">
               Presets for right now
             </p>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-muted-foreground">
               Will personalize with your taste soon
             </p>
           </div>
@@ -86,7 +148,7 @@ const SearchApp: React.FC = () => {
               <button
                 key={preset}
                 type="button"
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-zinc-300 transition hover:border-emerald-400/40 hover:bg-emerald-500/10"
+                className="rounded-2xl border border-border/60 bg-muted/30 px-4 py-3 text-left text-sm text-foreground/80 transition hover:border-emerald-400/40 hover:bg-emerald-500/10"
               >
                 {preset}
               </button>

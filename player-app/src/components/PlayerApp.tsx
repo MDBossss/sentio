@@ -10,9 +10,9 @@ export default function PlayerApp(container: HTMLElement) {
   const togglePlayPause = () => setPlaying(!playing());
 
   const PlayerContent = () => (
-    <div class="flex items-center justify-between gap-6 border-t border-white/10 bg-zinc-950/90 px-5 py-4 text-white shadow-[0_-8px_30px_rgba(0,0,0,0.35)] backdrop-blur">
+    <div class="flex items-center justify-between gap-6 border-t border-border/60 bg-background/90 px-5 py-4 text-foreground shadow-[0_-8px_30px_rgba(0,0,0,0.35)] backdrop-blur">
       <div class="min-w-[200px] flex-1">
-        <div class="text-xs uppercase tracking-wider text-zinc-400">Now Playing</div>
+        <div class="text-xs uppercase tracking-wider text-muted-foreground">Now Playing</div>
         <div class="mt-1 flex items-center gap-2 text-sm font-semibold text-emerald-400">
           <span class="text-base text-emerald-400">
             <Music size={16} />
@@ -24,7 +24,7 @@ export default function PlayerApp(container: HTMLElement) {
       <div class="flex items-center gap-3">
         <button
           type="button"
-          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-lg shadow-sm transition hover:scale-105 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-muted/40 text-lg text-foreground shadow-sm transition hover:scale-105 hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
           title="Previous"
           aria-label="Previous track"
         >
@@ -32,7 +32,7 @@ export default function PlayerApp(container: HTMLElement) {
         </button>
         <button
           type="button"
-          class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-xl shadow-lg shadow-emerald-500/30 transition hover:scale-105 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+          class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-xl text-zinc-950 shadow-lg shadow-emerald-500/30 transition hover:scale-105 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
           onClick={togglePlayPause}
           title={playing() ? "Pause" : "Play"}
           aria-label={playing() ? "Pause" : "Play"}
@@ -41,7 +41,7 @@ export default function PlayerApp(container: HTMLElement) {
         </button>
         <button
           type="button"
-          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-lg shadow-sm transition hover:scale-105 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-muted/40 text-lg text-foreground shadow-sm transition hover:scale-105 hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
           title="Next"
           aria-label="Next track"
         >
@@ -59,9 +59,9 @@ export default function PlayerApp(container: HTMLElement) {
           max="100"
           value={volume()}
           onInput={(e) => setVolume(Number(e.currentTarget.value))}
-          class="h-1 w-28 cursor-pointer appearance-none rounded-full bg-zinc-700 accent-emerald-400"
+          class="h-1 w-28 cursor-pointer appearance-none rounded-full bg-muted/60 accent-emerald-400"
         />
-        <span class="min-w-[36px] text-xs text-zinc-400">{volume()}%</span>
+        <span class="min-w-[36px] text-xs text-muted-foreground">{volume()}%</span>
       </div>
     </div>
   );
