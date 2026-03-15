@@ -1,4 +1,3 @@
-import { render } from 'solid-js/web';
 import PlayerApp from './components/PlayerApp';
 
 /**
@@ -8,7 +7,7 @@ export function setupPlayerApp() {
   const renderApp = () => {
     const rootElement = document.getElementById('player-app');
     if (rootElement) {
-      render(() => <PlayerApp />, rootElement);
+      PlayerApp(rootElement);
     } else {
       console.error("Could not find element with id 'player-app'");
     }

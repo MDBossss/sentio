@@ -8,13 +8,13 @@ export function setupSearchApp() {
   const renderApp = () => {
     const rootElement = document.getElementById("search-app");
     if (rootElement) {
-      const { SearchApp } = require("./components/SearchApp");
+      const { default: SearchApp } = require("./components/SearchApp");
       const root = createRoot(rootElement);
       root.render(
         React.createElement(
           React.StrictMode,
           null,
-          React.createElement(SearchApp.default),
+          React.createElement(SearchApp),
         ),
       );
     } else {

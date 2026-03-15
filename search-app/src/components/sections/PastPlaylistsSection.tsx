@@ -1,0 +1,86 @@
+import React, { useRef } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { pastPlaylists } from "@/constants/playlists";
+import { PlaylistCard } from "../ui/PlaylistCard";
+
+export const PastPlaylistsSection: React.FC = () => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 400;
+      const newScrollPosition =
+        scrollContainerRef.current.scrollLeft +
+        (direction === "left" ? -scrollAmount : scrollAmount);
+      scrollContainerRef.current.scrollTo({
+        left: newScrollPosition,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const shouldShowNavButtons = pastPlaylists.length > 10;
+
+  return (
+    <section className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+            Your collection
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold text-foreground">
+            Past playlists
+          </h2>
+        </div>
+
+        {shouldShowNavButtons && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => scroll("left")}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-400/80 text-zinc-950 transition hover:bg-emerald-400"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft size={20} />
+            </button>
+
+            <button
+              onClick={() => scroll("right")}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-400/80 text-zinc-950 transition hover:bg-emerald-400"
+              aria-label="Scroll right"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="relative group overflow-hidden">
+        {/* Left fade overlay */}
+        {shouldShowNavButtons && (
+          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-background to-transparent pointer-events-none z-10 rounded-2xl" />
+        )}
+
+        {/* Right fade overlay */}
+        {shouldShowNavButtons && (
+          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background to-transparent pointer-events-none z-10 rounded-2xl" />
+        )}
+
+        {/* Scroll container */}
+        <div
+          ref={scrollContainerRef}
+          className="flex gap-4 overflow-x-hidden pb-2 scroll-smooth"
+        >
+          {pastPlaylists.map((playlist) => (
+            <PlaylistCard key={playlist.id} playlist={playlist} />
+          ))}
+        </div>
+      </div>
+
+      <style>{`
+        .scroll-smooth {
+          scroll-behavior: smooth;
+        }
+      `}</style>
+    </section>
+  );
+};
