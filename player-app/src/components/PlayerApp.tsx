@@ -1,18 +1,46 @@
-import { createSignal } from "solid-js";
+import { createSignal, onMount, onCleanup } from "solid-js";
 import { render } from "solid-js/web";
-import { Music, SkipBack, SkipForward, Play, Pause, Volume2 } from "lucide-solid";
+import {
+  Music,
+  SkipBack,
+  SkipForward,
+  Play,
+  Pause,
+  Volume2,
+} from "lucide-solid";
 
 export default function PlayerApp(container: HTMLElement) {
   const [playing, setPlaying] = createSignal(false);
   const [currentTrack, setCurrentTrack] = createSignal("No track playing");
   const [volume, setVolume] = createSignal(70);
+  const [theme, setTheme] = createSignal<"dark" | "light">("dark");
 
   const togglePlayPause = () => setPlaying(!playing());
+
+  onMount(() => {
+    const storedTheme = localStorage.getItem("sentio-theme");
+    const initialTheme = storedTheme === "light" ? "light" : "dark";
+    setTheme(initialTheme);
+
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent).detail as {
+        theme?: "dark" | "light";
+      };
+      if (detail?.theme) {
+        setTheme(detail.theme);
+      }
+    };
+
+    window.addEventListener("sentio-theme-change", handler);
+    onCleanup(() => window.removeEventListener("sentio-theme-change", handler));
+  });
 
   const PlayerContent = () => (
     <div class="flex items-center justify-between gap-6 border-t border-border/60 bg-background/90 px-5 py-4 text-foreground shadow-3xl backdrop-blur">
       <div class="min-w-[200px] flex-1">
-        <div class="text-xs uppercase tracking-wider text-muted-foreground">Now Playing</div>
+        <div class="text-xs uppercase tracking-wider text-muted-foreground">
+          Now Playing
+        </div>
         <div class="mt-1 flex items-center gap-2 text-sm font-semibold text-emerald-400">
           <span class="text-base text-emerald-400">
             <Music size={16} />
@@ -32,7 +60,7 @@ export default function PlayerApp(container: HTMLElement) {
         </button>
         <button
           type="button"
-          class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-xl text-zinc-950 shadow-lg shadow-emerald-500/30 transition hover:scale-105 hover:bg-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300"
+          class={`inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-400 text-xl ${theme() === "light" ? "text-white" : "text-zinc-950"} shadow-lg shadow-emerald-500/30 transition hover:scale-105 hover:bg-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300`}
           onClick={togglePlayPause}
           title={playing() ? "Pause" : "Play"}
           aria-label={playing() ? "Pause" : "Play"}
@@ -61,7 +89,9 @@ export default function PlayerApp(container: HTMLElement) {
           onInput={(e) => setVolume(Number(e.currentTarget.value))}
           class="h-1 w-28 cursor-pointer appearance-none rounded-full bg-muted/60 accent-emerald-400"
         />
-        <span class="min-w-[36px] text-xs text-muted-foreground">{volume()}%</span>
+        <span class="min-w-[36px] text-xs text-muted-foreground">
+          {volume()}%
+        </span>
       </div>
     </div>
   );

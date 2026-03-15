@@ -16,7 +16,11 @@ const getTimeOfDay = () => {
 };
 
 const timePresets: Record<string, string[]> = {
-  morning: ["☀️ Morning focus", "🌤️ Soft indie wake-up", "🍃 Calm acoustic start"],
+  morning: [
+    "☀️ Morning focus",
+    "🌤️ Soft indie wake-up",
+    "🍃 Calm acoustic start",
+  ],
   afternoon: ["⚡ Midday energy", "🏙️ City pop stroll", "🎧 Productive flow"],
   evening: ["🌇 Golden hour chill", "🎷 Late lounge", "🧠 Deep focus"],
   night: ["🌙 Midnight focus", "🌧️ Rainy lofi beats", "🖤 Slowcore drift"],
@@ -56,7 +60,7 @@ const SearchApp: React.FC = () => {
     console.log("[sentio][search] requesting theme:", nextTheme);
     setTheme(nextTheme);
     window.dispatchEvent(
-      new CustomEvent("sentio-theme-request", { detail: { theme: nextTheme } })
+      new CustomEvent("sentio-theme-request", { detail: { theme: nextTheme } }),
     );
   };
 
@@ -68,7 +72,7 @@ const SearchApp: React.FC = () => {
             Your space
           </p>
           <h1 className="mt-2 text-3xl font-semibold text-foreground">
-            Welcome, Joey
+            Welcome, <span className="text-emerald-400">Jotipsey</span>
           </h1>
           <p className="mt-3 max-w-xl text-sm text-muted-foreground">
             Describe your vibe and Sentio will craft a playlist that matches
@@ -79,7 +83,7 @@ const SearchApp: React.FC = () => {
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 text-sm font-semibold text-emerald-300 transition hover:bg-white/10"
+              className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-emerald-400 bg-white/5 text-sm font-semibold text-emerald-300 transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
               aria-label="User profile"
             >
               J
@@ -119,7 +123,7 @@ const SearchApp: React.FC = () => {
           </div>
           <button
             type="button"
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-emerald-500 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-zinc-950 shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-400"
+            className={`inline-flex items-center gap-2 rounded-full border border-white/10 bg-emerald-400 px-4 py-2 text-xs font-semibold uppercase tracking-wider ${theme === "light" ? "text-white" : "text-zinc-950"} shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-300`}
           >
             <Sparkles size={14} />
             Generate
