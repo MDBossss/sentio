@@ -87,7 +87,7 @@ const SearchApp: React.FC = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="w-56 rounded-2xl border border-border/60 bg-popover/95 p-2 text-popover-foreground shadow-xl shadow-black/40 backdrop-blur"
+            className="w-56 rounded-2xl border border-border/60 bg-popover/95 p-2 text-popover-foreground shadow-xl backdrop-blur"
           >
             <DropdownMenuItem
               onClick={() => broadcastTheme("light")}
@@ -107,7 +107,7 @@ const SearchApp: React.FC = () => {
         </DropdownMenu>
       </div>
 
-      <section className="rounded-3xl border border-border/60 bg-card/40 p-8 shadow-2xl shadow-black/40 backdrop-blur">
+      <section className="rounded-3xl border border-border/60 bg-card/40 p-8 shadow-md backdrop-blur">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">

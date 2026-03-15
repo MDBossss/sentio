@@ -10,7 +10,7 @@ export default function PlayerApp(container: HTMLElement) {
   const togglePlayPause = () => setPlaying(!playing());
 
   const PlayerContent = () => (
-    <div class="flex items-center justify-between gap-6 border-t border-border/60 bg-background/90 px-5 py-4 text-foreground shadow-[0_-8px_30px_rgba(0,0,0,0.35)] backdrop-blur">
+    <div class="flex items-center justify-between gap-6 border-t border-border/60 bg-background/90 px-5 py-4 text-foreground shadow-3xl backdrop-blur">
       <div class="min-w-[200px] flex-1">
         <div class="text-xs uppercase tracking-wider text-muted-foreground">Now Playing</div>
         <div class="mt-1 flex items-center gap-2 text-sm font-semibold text-emerald-400">

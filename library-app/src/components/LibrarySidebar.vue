@@ -1,10 +1,10 @@
 <template>
   <aside
-    class="w-[320px] shrink-0 rounded-3xl border border-border/40 bg-card/80 p-6 shadow-2xl shadow-black/40 backdrop-blur"
+    class="w-[320px] shrink-0 rounded-3xl border border-border/40 bg-card/80 p-6 shadow-md backdrop-blur"
   >
     <div class="flex items-center gap-3">
       <div
-        class="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.35)]"
+        class="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-300"
       >
         <component :is="brandIcon" size="18" />
       </div>

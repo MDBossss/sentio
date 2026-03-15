@@ -30,6 +30,9 @@ module.exports = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        "3xl": "0_-6px_18px_rgba(0,0,0,0.18)",
+      },
     },
   },
   plugins: [],
