@@ -77,83 +77,24 @@ const App = () => {
   }, []);
 
   return (
-    <div style={styles.shell}>
-      <div style={styles.container}>
-        <aside style={styles.sidebar}>
-          <div style={styles.sidebarHeader}>
-            <h1 style={styles.logo}>📚 Library</h1>
-          </div>
-          <div id={libraryContainerId} style={styles.libraryContainer} />
+    <div className="flex min-h-screen flex-col bg-zinc-950 text-white">
+      <div className="flex flex-1 gap-6 p-6">
+        <aside className="shrink-0">
+          <div id={libraryContainerId} className="h-full overflow-hidden" />
         </aside>
 
-        <main style={styles.mainContent}>
-          <div id={searchContainerId} style={styles.searchContainer} />
+        <main className="flex-1">
+          <div id={searchContainerId} className="h-full overflow-hidden" />
         </main>
       </div>
 
-      <footer style={styles.footer}>
-        <div id={playerContainerId} style={styles.playerContainer} />
+      <footer>
+        <div id={playerContainerId} className="w-full" />
       </footer>
     </div>
   );
 };
 
-const styles = {
-  shell: {
-    display: "flex",
-    flexDirection: "column",
-    height: "100vh",
-    backgroundColor: "#121212",
-  },
-  container: {
-    display: "flex",
-    flex: 1,
-    overflow: "hidden",
-  },
-  sidebar: {
-    width: "300px",
-    backgroundColor: "#1db954",
-    borderRight: "1px solid #1ed760",
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-  },
-  sidebarHeader: {
-    padding: "20px",
-    borderBottom: "1px solid #1ed760",
-    backgroundColor: "#1aa34a",
-  },
-  logo: {
-    margin: 0,
-    fontSize: "24px",
-    color: "white",
-    fontWeight: "bold",
-  },
-  libraryContainer: {
-    flex: 1,
-    overflowY: "auto",
-    backgroundColor: "#1db954",
-  },
-  mainContent: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    backgroundColor: "#121212",
-    overflow: "hidden",
-  },
-  searchContainer: {
-    flex: 1,
-    overflow: "auto",
-  },
-  footer: {
-    height: "auto",
-    minHeight: "90px",
-    backgroundColor: "#181818",
-    borderTop: "1px solid #282828",
-  },
-  playerContainer: {
-    width: "100%",
-  },
-};
+
 
 export default App;
