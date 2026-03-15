@@ -9,6 +9,7 @@
     "dev": "webpack --mode development --watch"
   },
   "dependencies": {
+    "lucide-solid": "^0.577.0",
     "solid-js": "^1.8.0"
   },
   "devDependencies": {

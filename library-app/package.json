@@ -9,6 +9,7 @@
     "dev": "webpack --mode development --watch"
   },
   "dependencies": {
+    "lucide-vue-next": "^0.577.0",
     "vue": "^3.3.0"
   },
   "devDependencies": {
