@@ -6,27 +6,31 @@
     "search-app",
     "shell-app",
     "library-app",
-    "player-app"
+    "player-app",
+    "server"
   ],
   "scripts": {
-    "install-all": "npm install && npm install --workspace=search-app && npm install --workspace=shell-app && npm install --workspace=library-app && npm install --workspace=player-app",
-    "install-ci": "npm ci && npm ci --workspace=search-app && npm ci --workspace=shell-app && npm ci --workspace=library-app && npm ci --workspace=player-app",
+    "install-all": "npm install && npm install --workspace=search-app && npm install --workspace=shell-app && npm install --workspace=library-app && npm install --workspace=player-app && npm install --workspace=server",
+    "install-ci": "npm ci && npm ci --workspace=search-app && npm ci --workspace=shell-app && npm ci --workspace=library-app && npm ci --workspace=player-app && npm ci --workspace=server",
     "dev": "npm run dev --workspaces",
     "build": "npm run build --workspaces",
-    "start": "concurrently \"npm run search-app:start\" \"npm run shell-app:start\" \"npm run library-app:start\" \"npm run player-app:start\"",
+    "start": "concurrently \"npm run search-app:start\" \"npm run shell-app:start\" \"npm run library-app:start\" \"npm run player-app:start\" \"npm run server:start\"",
     "start:search": "npm run search-app:start",
     "start:shell": "npm run shell-app:start",
     "start:library": "npm run library-app:start",
     "start:player": "npm run player-app:start",
+    "start:server": "npm run server:start",
     "stop": "pkill -f \"webpack serve\" || true && echo \"All apps stopped\"",
     "search-app:start": "npm start --workspace=search-app",
     "shell-app:start": "npm start --workspace=shell-app",
     "library-app:start": "npm start --workspace=library-app",
     "player-app:start": "npm start --workspace=player-app",
+    "server:start": "npm run dev --workspace=server",
     "search-app:build": "npm run build --workspace=search-app",
     "shell-app:build": "npm run build --workspace=shell-app",
     "library-app:build": "npm run build --workspace=library-app",
-    "player-app:build": "npm run build --workspace=player-app"
+    "player-app:build": "npm run build --workspace=player-app",
+    "server:build": "npm run build --workspace=server"
   },
   "devDependencies": {
     "concurrently": "^8.2.0"
