@@ -384,6 +384,21 @@ The setup includes:
 
 ## Troubleshooting
 
+## Tailwind + Shadow DOM (all remotes)
+
+All remotes mount into a Shadow DOM, so **global styles from the shell app do not apply** inside each remote. Each remote must inject its own Tailwind stylesheet into its shadow root.
+
+What we do in each remote:
+
+- `styles.css` holds Tailwind directives.
+- The injector imports `styles.css?inline` and appends a `<style>` tag to the shadow root.
+- The webpack config has a `?inline` CSS rule using `to-string-loader`, so Tailwind compiles to a string (instead of going to `document.head`).
+
+If Tailwind appears missing:
+
+1. Restart the dev server for the remote you updated (webpack config changes require a restart).
+2. Hard refresh the shell app to reload the remote bundle.
+
 ### "Cannot find module 'searchApp/searchInjector'"
 
 - Ensure Search App is running on the correct port

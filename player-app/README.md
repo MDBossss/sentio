@@ -14,6 +14,25 @@ The Player App is a **Solid.js + TypeScript + Webpack** application that exposes
 - ✅ Development server with HMR
 - ✅ Play/Pause controls, volume slider, track info
 
+## Shadow DOM + Tailwind Setup
+
+Tailwind styles are compiled and **injected into the shadow root** so they apply inside the Player App's Shadow DOM. The shell app's global styles do not penetrate the shadow boundary.
+
+Key pieces:
+
+- `styles.css` contains the Tailwind directives.
+- `playerInjector.tsx` imports `styles.css?inline` and injects it as a `<style>` tag inside the shadow root.
+- `webpack.config.js` handles `?inline` CSS using `to-string-loader` so Tailwind compiles to a string instead of injecting into `document.head`.
+
+Why this is needed:
+
+- Module Federation loads `playerInjector` directly, so `index.ts` (which normally imports `styles.css`) is not guaranteed to run.
+- Shadow DOM isolates styles, so any CSS added to `document.head` will not affect the player UI.
+
+If Tailwind looks missing:
+1. Restart the **player app dev server** (webpack config changes need a full restart).
+2. Hard-refresh the shell app.
+
 ## Exposed Module
 
 **Module Name:** `playerApp/playerInjector`

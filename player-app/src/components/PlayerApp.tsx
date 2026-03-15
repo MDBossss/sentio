@@ -1,5 +1,6 @@
 import { createSignal } from "solid-js";
 import { render } from "solid-js/web";
+import { Music, SkipBack, SkipForward, Play, Pause, Volume2 } from "lucide-solid";
 
 export default function PlayerApp(container: HTMLElement) {
   const [playing, setPlaying] = createSignal(false);
@@ -13,7 +14,9 @@ export default function PlayerApp(container: HTMLElement) {
       <div class="min-w-[200px] flex-1">
         <div class="text-xs uppercase tracking-wider text-zinc-400">Now Playing</div>
         <div class="mt-1 flex items-center gap-2 text-sm font-semibold text-emerald-400">
-          <span>🎵</span>
+          <span class="text-base text-emerald-400">
+            <Music size={16} />
+          </span>
           <span class="truncate">{currentTrack()}</span>
         </div>
       </div>
@@ -25,7 +28,7 @@ export default function PlayerApp(container: HTMLElement) {
           title="Previous"
           aria-label="Previous track"
         >
-          ⏮️
+          <SkipBack size={18} />
         </button>
         <button
           type="button"
@@ -34,7 +37,7 @@ export default function PlayerApp(container: HTMLElement) {
           title={playing() ? "Pause" : "Play"}
           aria-label={playing() ? "Pause" : "Play"}
         >
-          {playing() ? "⏸️" : "▶️"}
+          {playing() ? <Pause size={20} /> : <Play size={20} />}
         </button>
         <button
           type="button"
@@ -42,12 +45,14 @@ export default function PlayerApp(container: HTMLElement) {
           title="Next"
           aria-label="Next track"
         >
-          ⏭️
+          <SkipForward size={18} />
         </button>
       </div>
 
       <div class="flex min-w-[180px] items-center gap-3">
-        <span class="text-base">🔊</span>
+        <span class="text-base">
+          <Volume2 size={16} />
+        </span>
         <input
           type="range"
           min="0"
