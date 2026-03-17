@@ -1,10 +1,22 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import shadowStyles from '../styles.css?inline';
-import { styleShadowContainer, createShadowContainer, deleteShadowContainer } from '../utils/shadowDom';
-import SearchApp from '../components/SearchApp';
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { ClerkProvider } from "@clerk/clerk-react";
+import shadowStyles from "../styles.css?inline";
+import {
+  styleShadowContainer,
+  createShadowContainer,
+  deleteShadowContainer,
+} from "../utils/shadowDom";
+import SearchApp from "../components/SearchApp";
 
 const THEME_STORAGE_KEY = "sentio-theme";
+const clerkPubKey = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY || "";
+
+if (!process.env.REACT_APP_CLERK_PUBLISHABLE_KEY) {
+  console.error(
+    "REACT_APP_CLERK_PUBLISHABLE_KEY is not set in environment variables",
+  );
+}
 
 const roots: Record<string, { root: any; cleanup?: () => void }> = {};
 
@@ -13,7 +25,9 @@ const getInitialTheme = () => {
   if (stored === "light" || stored === "dark") {
     return stored;
   }
-  const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
+  const prefersDark = window.matchMedia?.(
+    "(prefers-color-scheme: dark)",
+  )?.matches;
   if (prefersDark) {
     return "dark";
   }
@@ -28,7 +42,7 @@ const applyThemeToShadow = (shadowRoot: ShadowRoot, theme: string) => {
 
 export const injectElement = (
   parentElementId: string,
-  component: React.ReactNode
+  component: React.ReactNode,
 ) => {
   const { appPlaceholder, shadowRoot } = createShadowContainer(parentElementId);
   if (appPlaceholder && shadowRoot) {
@@ -37,7 +51,7 @@ export const injectElement = (
     const initialTheme = getInitialTheme();
     console.debug(
       "[search-app] initial theme from storage or document:",
-      initialTheme
+      initialTheme,
     );
     applyThemeToShadow(shadowRoot, initialTheme);
 
@@ -45,7 +59,7 @@ export const injectElement = (
       const customEvent = event as CustomEvent<{ theme?: string }>;
       console.debug(
         "[search-app] theme event received:",
-        customEvent.detail?.theme
+        customEvent.detail?.theme,
       );
       if (customEvent.detail?.theme) {
         applyThemeToShadow(shadowRoot, customEvent.detail.theme);
@@ -66,7 +80,7 @@ export const injectElement = (
 };
 
 const injectTailwindStyles = (shadowRoot: ShadowRoot) => {
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.textContent = shadowStyles;
   shadowRoot.appendChild(style);
 };
@@ -82,7 +96,12 @@ export const unmountElement = (parentElementId: string) => {
 };
 
 export const inject = (parentElementId: string) =>
-  injectElement(parentElementId, <SearchApp />);
+  injectElement(
+    parentElementId,
+    <ClerkProvider publishableKey={clerkPubKey}>
+      <SearchApp />
+    </ClerkProvider>,
+  );
 
 export const unmount = (parentElementId: string) =>
   unmountElement(parentElementId);

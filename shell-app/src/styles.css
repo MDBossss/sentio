@@ -4,7 +4,8 @@
 
 @font-face {
   font-family: "Geist";
-  src: url("../public/Geist-VariableFont_wght.ttf") format("truetype-variations");
+  src: url("../public/Geist-VariableFont_wght.ttf")
+    format("truetype-variations");
   font-weight: 100 900;
 }
 
@@ -76,4 +77,43 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.gradient-animated {
+  background: linear-gradient(
+    -45deg,
+    #0f172a,
+    #064e3b,
+    #1e293b,
+    #047857,
+    #0f172a
+  );
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+.float-slow {
+  animation: float-slow 8s ease-in-out infinite;
 }

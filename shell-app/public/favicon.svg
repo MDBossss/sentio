@@ -1,0 +1,20 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background rounded square -->
+  <rect width="32" height="32" rx="8" fill="#10b981" opacity="0.2"/>
+  
+  <!-- Music icon (two notes) -->
+  <g fill="#a7f3d0" stroke="#a7f3d0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- First note head -->
+    <circle cx="10" cy="20" r="2.5"/>
+    <!-- First note stem -->
+    <line x1="12.5" y1="20" x2="12.5" y2="8"/>
+    
+    <!-- Second note head -->
+    <circle cx="18" cy="18" r="2.5"/>
+    <!-- Second note stem -->
+    <line x1="20.5" y1="18" x2="20.5" y2="6"/>
+    
+    <!-- Connecting beam -->
+    <path d="M 12.5 8 Q 16.5 7 20.5 6" stroke="#a7f3d0" fill="none" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+</svg>

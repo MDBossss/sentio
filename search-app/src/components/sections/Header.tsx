@@ -1,11 +1,14 @@
 import React from "react";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, LogOut } from "lucide-react";
+import { useSession, useClerk } from "@clerk/clerk-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { UserAvatar } from "@/components/ui/UserAvatar";
 
 interface HeaderProps {
   theme: "dark" | "light";
@@ -13,6 +16,12 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ theme, onThemeChange }) => {
+  const { session } = useSession();
+  const { signOut } = useClerk();
+
+  const firstName = session?.user?.firstName || "there";
+  const userImageUrl = session?.user?.imageUrl;
+
   return (
     <div className="flex items-center justify-between gap-6">
       <div>
@@ -20,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, onThemeChange }) => {
           Your space
         </p>
         <h1 className="mt-2 text-3xl font-semibold text-foreground">
-          Welcome, <span className="text-emerald-400">Jotipsey</span>
+          Welcome, <span className="text-emerald-400">{firstName}</span>
         </h1>
         <p className="mt-3 max-w-xl text-sm text-muted-foreground">
           Describe your vibe and Sentio will craft a playlist that matches your
@@ -31,10 +40,14 @@ export const Header: React.FC<HeaderProps> = ({ theme, onThemeChange }) => {
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-emerald-400 bg-white/5 text-sm font-semibold text-emerald-300 transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+            className="rounded-full transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 mr-1"
             aria-label="User profile"
           >
-            J
+            <UserAvatar
+              imageUrl={userImageUrl}
+              firstName={session?.user?.firstName}
+              lastName={session?.user?.lastName}
+            />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -48,14 +61,26 @@ export const Header: React.FC<HeaderProps> = ({ theme, onThemeChange }) => {
             {theme === "dark" ? (
               <>
                 <Sun size={14} className="text-emerald-400" />
-                <span className="text-popover-foreground">Switch to light mode</span>
+                <span className="text-popover-foreground">
+                  Switch to light mode
+                </span>
               </>
             ) : (
               <>
                 <Moon size={14} className="text-emerald-400" />
-                <span className="text-popover-foreground">Switch to dark mode</span>
+                <span className="text-popover-foreground">
+                  Switch to dark mode
+                </span>
               </>
             )}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="my-2 bg-border/40" />
+          <DropdownMenuItem
+            onClick={() => signOut()}
+            className="gap-2 rounded-xl focus:bg-white/10 hover:bg-white/10 cursor-pointer"
+          >
+            <LogOut size={14} className="text-red-400" />
+            <span className="text-red-400">Logout</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
