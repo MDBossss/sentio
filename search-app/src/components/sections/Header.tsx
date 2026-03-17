@@ -48,12 +48,16 @@ export const Header: React.FC<HeaderProps> = ({ theme, onThemeChange }) => {
             {theme === "dark" ? (
               <>
                 <Sun size={14} className="text-emerald-400" />
-                <span className="text-popover-foreground">Switch to light mode</span>
+                <span className="text-popover-foreground">
+                  Switch to light mode
+                </span>
               </>
             ) : (
               <>
                 <Moon size={14} className="text-emerald-400" />
-                <span className="text-popover-foreground">Switch to dark mode</span>
+                <span className="text-popover-foreground">
+                  Switch to dark mode
+                </span>
               </>
             )}
           </DropdownMenuItem>

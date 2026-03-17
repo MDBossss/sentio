@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import playlistRouter from "./routes/playlist";
+import userRouter from "./routes/user";
 
 dotenv.config();
 
@@ -34,6 +35,9 @@ app.get("/hello", (req: Request, res: Response) => {
 app.get("/health", (req: Request, res: Response) => {
   res.json({ status: "ok" });
 });
+
+// User routes
+app.use(userRouter);
 
 // Playlist routes
 app.use(playlistRouter);

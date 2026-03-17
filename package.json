@@ -30,7 +30,10 @@
     "shell-app:build": "npm run build --workspace=shell-app",
     "library-app:build": "npm run build --workspace=library-app",
     "player-app:build": "npm run build --workspace=player-app",
-    "server:build": "npm run build --workspace=server"
+    "server:build": "npm run build --workspace=server",
+    "prisma:studio": "npm run prisma:studio --workspace=server",
+    "prisma:migrate": "npm run prisma:migrate --workspace=server",
+    "prisma:generate": "npm run prisma:generate --workspace=server"
   },
   "devDependencies": {
     "concurrently": "^8.2.0"
