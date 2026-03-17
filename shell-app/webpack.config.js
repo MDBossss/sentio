@@ -1,9 +1,13 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const webpack = require("webpack");
+const dotenv = require("dotenv");
 const {
   container: { ModuleFederationPlugin },
 } = require("webpack");
+
+// Load environment variables from .env file
+dotenv.config();
 
 const isProduction = process.env.NODE_ENV === "production";
 const searchAppUrl = process.env.SEARCH_APP_URL || "http://localhost:3001";
@@ -77,8 +81,6 @@ module.exports = {
       shared: {
         react: { singleton: true, requiredVersion: false },
         "react-dom": { singleton: true, requiredVersion: false },
-        "@clerk/clerk-react": { singleton: true, requiredVersion: false },
-        "@clerk/types": { singleton: true, requiredVersion: false },
       },
     }),
     new HtmlWebpackPlugin({

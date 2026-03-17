@@ -1,5 +1,6 @@
 import React from "react";
 import { Sun, Moon } from "lucide-react";
+import { useSession } from "@clerk/clerk-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +14,11 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ theme, onThemeChange }) => {
+  const { session } = useSession();
+
+  const firstName = session?.user?.firstName || "there";
+  const userInitial = (session?.user?.firstName?.[0] || "?").toUpperCase();
+
   return (
     <div className="flex items-center justify-between gap-6">
       <div>
@@ -20,7 +26,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, onThemeChange }) => {
           Your space
         </p>
         <h1 className="mt-2 text-3xl font-semibold text-foreground">
-          Welcome, <span className="text-emerald-400">Jotipsey</span>
+          Welcome, <span className="text-emerald-400">{firstName}</span>
         </h1>
         <p className="mt-3 max-w-xl text-sm text-muted-foreground">
           Describe your vibe and Sentio will craft a playlist that matches your
@@ -34,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({ theme, onThemeChange }) => {
             className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-emerald-400 bg-white/5 text-sm font-semibold text-emerald-300 transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
             aria-label="User profile"
           >
-            J
+            {userInitial}
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
