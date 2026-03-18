@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Music } from "lucide-react";
 import { pastPlaylists } from "@/constants/playlists";
 import { PlaylistCard } from "../ui/PlaylistCard";
 
@@ -54,27 +54,41 @@ export const PastPlaylistsSection: React.FC = () => {
         )}
       </div>
 
-      <div className="relative group overflow-hidden">
-        {/* Left fade overlay */}
-        {shouldShowNavButtons && (
-          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-background to-transparent pointer-events-none z-10 rounded-2xl" />
-        )}
+      {pastPlaylists.length > 0 ? (
+        <div className="relative group overflow-hidden">
+          {/* Left fade overlay */}
+          {shouldShowNavButtons && (
+            <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-background to-transparent pointer-events-none z-10 rounded-2xl" />
+          )}
 
-        {/* Right fade overlay */}
-        {shouldShowNavButtons && (
-          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background to-transparent pointer-events-none z-10 rounded-2xl" />
-        )}
+          {/* Right fade overlay */}
+          {shouldShowNavButtons && (
+            <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background to-transparent pointer-events-none z-10 rounded-2xl" />
+          )}
 
-        {/* Scroll container */}
-        <div
-          ref={scrollContainerRef}
-          className="flex gap-4 overflow-x-hidden pb-2 scroll-smooth"
-        >
-          {pastPlaylists.map((playlist) => (
-            <PlaylistCard key={playlist.id} playlist={playlist} />
-          ))}
+          {/* Scroll container */}
+          <div
+            ref={scrollContainerRef}
+            className="flex gap-4 overflow-x-hidden pb-2 scroll-smooth"
+          >
+            {pastPlaylists.map((playlist) => (
+              <PlaylistCard key={playlist.id} playlist={playlist} />
+            ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="rounded-full bg-muted/40 p-4 mb-4">
+            <Music size={32} className="text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground">
+            No past playlists
+          </h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Your created playlists will appear here
+          </p>
+        </div>
+      )}
 
       <style>{`
         .scroll-smooth {

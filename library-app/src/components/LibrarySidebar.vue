@@ -35,7 +35,7 @@
       </button>
     </div>
 
-    <div class="mt-5 space-y-4">
+    <div v-if="playlists.length > 0" class="mt-5 space-y-4">
       <PlaylistCard
         v-for="playlist in playlists"
         :key="playlist.id"
@@ -44,6 +44,19 @@
     </div>
 
     <div
+      v-else
+      class="mt-5 rounded-2xl border border-border/40 bg-card/70 p-4 text-xs text-muted-foreground"
+    >
+      <div class="flex items-center gap-2 text-foreground/80">
+        <Music size="14" class="text-emerald-400" />
+        <span class="font-semibold uppercase tracking-wider">No playlists</span>
+      </div>
+      <p class="mt-2 leading-relaxed">
+        Start by creating a playlist through the search prompt.
+      </p>
+    </div>
+
+    <!-- <div
       class="mt-6 rounded-2xl border border-border/40 bg-card/70 p-4 text-xs text-muted-foreground"
     >
       <div class="flex items-center gap-2 text-foreground/80">
@@ -53,7 +66,7 @@
       <p class="mt-2 leading-relaxed">
         Pin playlists you love and keep them in sync across your devices.
       </p>
-    </div>
+    </div> -->
   </aside>
 </template>
 
