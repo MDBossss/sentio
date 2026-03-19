@@ -20,19 +20,12 @@
       class="mb-5 h-px bg-gradient-to-r from-transparent via-border/40 to-transparent"
     ></div>
 
-    <div class="flex items-center justify-between">
+    <div>
       <h3
         class="text-sm font-semibold uppercase tracking-widest text-muted-foreground"
       >
         My library
       </h3>
-      <button
-        type="button"
-        class="inline-flex items-center gap-2 rounded-full border border-border/40 bg-muted/40 px-3 py-1.5 text-xs uppercase tracking-wider text-foreground/80 transition hover:bg-muted/60 hover:text-foreground"
-      >
-        <Plus size="14" />
-        New
-      </button>
     </div>
 
     <div v-if="playlists.length > 0" class="mt-5 space-y-4">

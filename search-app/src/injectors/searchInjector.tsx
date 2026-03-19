@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { ClerkProvider } from "@clerk/clerk-react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import shadowStyles from "../styles.css?inline";
 import {
   styleShadowContainer,
@@ -11,6 +12,16 @@ import SearchApp from "../components/SearchApp";
 
 const THEME_STORAGE_KEY = "sentio-theme";
 const clerkPubKey = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY || "";
+
+// Create a client for React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 if (!process.env.REACT_APP_CLERK_PUBLISHABLE_KEY) {
   console.error(
@@ -98,9 +109,11 @@ export const unmountElement = (parentElementId: string) => {
 export const inject = (parentElementId: string) =>
   injectElement(
     parentElementId,
-    <ClerkProvider publishableKey={clerkPubKey}>
-      <SearchApp />
-    </ClerkProvider>,
+    <QueryClientProvider client={queryClient}>
+      <ClerkProvider publishableKey={clerkPubKey}>
+        <SearchApp />
+      </ClerkProvider>
+    </QueryClientProvider>,
   );
 
 export const unmount = (parentElementId: string) =>

@@ -32,9 +32,7 @@ export const PastPlaylistsSection: React.FC<PastPlaylistsSectionProps> = ({
 
   // Use fetched playlists if available, otherwise show empty state
   const displayPlaylists =
-    playlists && playlists.length > 0
-      ? playlists.map(transformPlaylist)
-      : [];
+    playlists && playlists.length > 0 ? playlists.map(transformPlaylist) : [];
 
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
