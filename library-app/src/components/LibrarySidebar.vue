@@ -88,6 +88,10 @@ defineProps({
     type: Array,
     default: () => [],
   },
+  isLoading: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const iconPool = [Sparkles, Wand2, Headphones, Music, Radio];

@@ -11,12 +11,13 @@ datasource db {
 }
 
 model User {
-  id        String    @id           // Clerk ID
+  id        String     @id           // Clerk ID
   firstName String
   lastName  String
-  email     String    @unique
+  email     String     @unique
   imageUrl  String?
-  createdAt DateTime  @default(now())
+  createdAt DateTime   @default(now())
+  playlists Playlist[]
 }
 
 model Song {
@@ -35,7 +36,10 @@ model Playlist {
   prompt    String
   title     String
   songs     Song[]
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   
   @@index([createdAt])
+  @@index([userId])
 }

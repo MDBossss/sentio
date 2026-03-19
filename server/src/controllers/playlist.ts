@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createPlaylist } from "../service/playlist";
+import { createPlaylist, getPlaylistsByUserId } from "../service/playlist";
 import { enrichSongsWithYouTube } from "../service/youtube";
 import { mockSongs } from "../mocks/songs";
 import { PlaylistRequest } from "../types";
@@ -9,7 +9,9 @@ export async function generatePlaylist(
   res: Response,
 ): Promise<void> {
   try {
-    const { prompt, genres } = req.body as PlaylistRequest;
+    const { prompt, genres, userId } = req.body as PlaylistRequest & {
+      userId: string;
+    };
 
     // Validation
     if (!prompt || typeof prompt !== "string" || prompt.trim().length === 0) {
@@ -22,8 +24,13 @@ export async function generatePlaylist(
       return;
     }
 
+    if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
+      res.status(400).json({ error: "Valid userId is required" });
+      return;
+    }
+
     // Call service to handle business logic
-    const playlist = await createPlaylist(prompt, genres);
+    const playlist = await createPlaylist(prompt, genres, userId);
 
     res.status(201).json(playlist);
   } catch (error) {
@@ -64,6 +71,31 @@ export async function testYouTubeEnrichment(
     });
   } catch (error) {
     console.error("Error in testYouTubeEnrichment controller:", error);
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+    res.status(500).json({ error: message });
+  }
+}
+
+export async function getUserPlaylists(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const { userId } = req.params as { userId: string };
+
+    // Validation
+    if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
+      res.status(400).json({ error: "Valid userId is required" });
+      return;
+    }
+
+    // Call service to get playlists
+    const playlists = await getPlaylistsByUserId(userId);
+
+    res.status(200).json(playlists);
+  } catch (error) {
+    console.error("Error in getUserPlaylists controller:", error);
     const message =
       error instanceof Error ? error.message : "Internal server error";
     res.status(500).json({ error: message });

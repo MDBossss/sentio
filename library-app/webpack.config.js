@@ -1,18 +1,33 @@
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const { container: { ModuleFederationPlugin } } = require('webpack');
-const { VueLoaderPlugin } = require('vue-loader');
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const {
+  container: { ModuleFederationPlugin },
+} = require("webpack");
+const { VueLoaderPlugin } = require("vue-loader");
+const webpack = require("webpack");
+const dotenv = require("dotenv");
 
-const isProduction = process.env.NODE_ENV === 'production';
-const publicPath = process.env.PUBLIC_PATH || 'http://localhost:3002/';
+// Load environment variables from .env file
+dotenv.config();
+
+const isProduction = process.env.NODE_ENV === "production";
+const publicPath = process.env.PUBLIC_PATH || "http://localhost:3002/";
+
+// Build environment variables object for DefinePlugin
+const envVars = {};
+Object.keys(process.env).forEach((key) => {
+  if (key.startsWith("VUE_APP_")) {
+    envVars[`process.env.${key}`] = JSON.stringify(process.env[key]);
+  }
+});
 
 module.exports = {
-  mode: isProduction ? 'production' : 'development',
-  entry: './src/index.js',
+  mode: isProduction ? "production" : "development",
+  entry: "./src/index.js",
   output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: '[name].[contenthash:8].js',
-    chunkFilename: '[name].[contenthash:8].chunk.js',
+    path: path.resolve(__dirname, "dist"),
+    filename: "[name].[contenthash:8].js",
+    chunkFilename: "[name].[contenthash:8].chunk.js",
     publicPath: publicPath,
     clean: true,
   },
@@ -20,31 +35,32 @@ module.exports = {
     port: 3002,
     hot: true,
     headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-      'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
+      "Access-Control-Allow-Headers":
+        "X-Requested-With, content-type, Authorization",
     },
   },
-  devtool: isProduction ? 'source-map' : 'cheap-module-source-map',
+  devtool: isProduction ? "source-map" : "cheap-module-source-map",
   resolve: {
-    extensions: ['.vue', '.js', '.json'],
+    extensions: [".vue", ".js", ".json"],
     alias: {
-      vue: 'vue/dist/vue.esm-bundler.js',
+      vue: "vue/dist/vue.esm-bundler.js",
     },
   },
   module: {
     rules: [
       {
         test: /\.vue$/,
-        loader: 'vue-loader',
+        loader: "vue-loader",
       },
       {
         test: /\.js$/,
         exclude: /node_modules/,
         use: {
-          loader: 'babel-loader',
+          loader: "babel-loader",
           options: {
-            presets: ['@babel/preset-env'],
+            presets: ["@babel/preset-env"],
           },
         },
       },
@@ -53,21 +69,22 @@ module.exports = {
         oneOf: [
           {
             resourceQuery: /inline/,
-            use: ['to-string-loader', 'css-loader', 'postcss-loader'],
+            use: ["to-string-loader", "css-loader", "postcss-loader"],
           },
           {
-            use: ['style-loader', 'css-loader', 'postcss-loader'],
+            use: ["style-loader", "css-loader", "postcss-loader"],
           },
         ],
       },
     ],
   },
   plugins: [
+    new webpack.DefinePlugin(envVars),
     new ModuleFederationPlugin({
-      name: 'libraryApp',
-      filename: 'remoteEntry.js',
+      name: "libraryApp",
+      filename: "remoteEntry.js",
       exposes: {
-        './libraryInjector': './src/injectors/libraryInjector.js',
+        "./libraryInjector": "./src/injectors/libraryInjector.js",
       },
       shared: {
         vue: { singleton: true, requiredVersion: false },
@@ -75,8 +92,8 @@ module.exports = {
     }),
     new VueLoaderPlugin(),
     new HtmlWebpackPlugin({
-      template: './public/index.html',
-      favicon: './public/favicon.ico',
+      template: "./public/index.html",
+      favicon: "./public/favicon.ico",
     }),
   ],
 };

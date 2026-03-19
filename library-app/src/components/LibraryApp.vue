@@ -1,41 +1,46 @@
 <template>
   <div class="h-full">
-    <LibrarySidebar :playlists="playlists" />
+    <LibrarySidebar :playlists="playlists" :isLoading="isLoadingPlaylists" />
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import LibrarySidebar from "./LibrarySidebar.vue";
+import { getPlaylistsByUserId } from "../api/playlists";
 
-const playlists = ref([
-  {
-    id: 1,
-    title: "Night Drive",
-    producers: "Koda, Lina, Juno",
-    image:
-      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=320&q=80",
-  },
-  {
-    id: 2,
-    title: "Studio Focus",
-    producers: "Eliot, Nova",
-    image:
-      "https://images.unsplash.com/photo-1483412033650-1015ddeb83d1?auto=format&fit=crop&w=320&q=80",
-  },
-  {
-    id: 3,
-    title: "Golden Hour",
-    producers: "Mira, Solace",
-    image:
-      "https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?auto=format&fit=crop&w=320&q=80",
-  },
-  {
-    id: 4,
-    title: "Low-Fi Rituals",
-    producers: "Ari, Glasshouse",
-    image:
-      "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=320&q=80",
-  },
-]);
+const playlists = ref([]);
+const isLoadingPlaylists = ref(false);
+
+// Fetch playlists on mount
+onMounted(async () => {
+  const userId = window.sentioUserId;
+
+  if (!userId) {
+    console.warn("[LibraryApp] No userId found on window.sentioUserId");
+    return;
+  }
+
+  isLoadingPlaylists.value = true;
+  try {
+    const fetchedPlaylists = await getPlaylistsByUserId(userId);
+
+    if (fetchedPlaylists && fetchedPlaylists.length > 0) {
+      // Transform API format to UI format
+      playlists.value = fetchedPlaylists.map((playlist) => ({
+        id: playlist.id,
+        title: playlist.title,
+        producers: playlist.prompt.split(".")[0].substring(0, 50),
+        image:
+          playlist.songs && playlist.songs.length > 0
+            ? playlist.songs[0].thumbnail
+            : "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=320&q=80",
+      }));
+    }
+  } catch (error) {
+    console.error("[LibraryApp] Failed to fetch playlists:", error);
+  } finally {
+    isLoadingPlaylists.value = false;
+  }
+});
 </script>

@@ -42,6 +42,13 @@ export const AppWrapper = ({ children }) => {
         const user = generateUser(session.user);
         console.log("[AppWrapper] Generated user data:", user);
 
+        // Store userId on window for micro-frontends to access
+        window.sentioUserId = user.id;
+        console.log(
+          "[AppWrapper] User ID stored on window.sentioUserId:",
+          user.id,
+        );
+
         // Check if user exists
         const existingUser = await fetchUserById(user.id);
 

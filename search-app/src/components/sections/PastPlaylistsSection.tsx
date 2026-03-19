@@ -1,10 +1,40 @@
 import React, { useRef } from "react";
 import { ChevronLeft, ChevronRight, Music } from "lucide-react";
-import { pastPlaylists } from "@/constants/playlists";
+import { Playlist as PlaylistType } from "@/constants/playlists";
 import { PlaylistCard } from "../ui/PlaylistCard";
+import { Playlist as ApiPlaylist } from "@/api/playlists";
 
-export const PastPlaylistsSection: React.FC = () => {
+interface PastPlaylistsSectionProps {
+  playlists?: ApiPlaylist[];
+  isLoading?: boolean;
+}
+
+// Transform API playlist to UI playlist format
+const transformPlaylist = (apiPlaylist: ApiPlaylist): PlaylistType => {
+  const thumbnailUrl =
+    apiPlaylist.songs && apiPlaylist.songs.length > 0
+      ? apiPlaylist.songs[0].thumbnail
+      : "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop";
+
+  return {
+    id: parseInt(apiPlaylist.id, 10) || Math.random(),
+    title: apiPlaylist.title,
+    mood: apiPlaylist.prompt.split(".")[0].substring(0, 50),
+    image: thumbnailUrl,
+  };
+};
+
+export const PastPlaylistsSection: React.FC<PastPlaylistsSectionProps> = ({
+  playlists = [],
+  isLoading = false,
+}) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Use fetched playlists if available, otherwise show empty state
+  const displayPlaylists =
+    playlists && playlists.length > 0
+      ? playlists.map(transformPlaylist)
+      : [];
 
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
@@ -19,7 +49,7 @@ export const PastPlaylistsSection: React.FC = () => {
     }
   };
 
-  const shouldShowNavButtons = pastPlaylists.length > 10;
+  const shouldShowNavButtons = displayPlaylists.length > 10;
 
   return (
     <section className="space-y-4">
@@ -54,7 +84,7 @@ export const PastPlaylistsSection: React.FC = () => {
         )}
       </div>
 
-      {pastPlaylists.length > 0 ? (
+      {displayPlaylists.length > 0 ? (
         <div className="relative group overflow-hidden">
           {/* Left fade overlay */}
           {shouldShowNavButtons && (
@@ -71,7 +101,7 @@ export const PastPlaylistsSection: React.FC = () => {
             ref={scrollContainerRef}
             className="flex gap-4 overflow-x-hidden pb-2 scroll-smooth"
           >
-            {pastPlaylists.map((playlist) => (
+            {displayPlaylists.map((playlist) => (
               <PlaylistCard key={playlist.id} playlist={playlist} />
             ))}
           </div>

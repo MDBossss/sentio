@@ -8,6 +8,7 @@ const prisma = new PrismaClient();
 export async function createPlaylist(
   prompt: string,
   genres: string[],
+  userId: string,
 ): Promise<PlaylistResponse> {
   // Generate songs using OpenAI
   console.log(
@@ -38,6 +39,7 @@ export async function createPlaylist(
     data: {
       prompt,
       title,
+      userId,
       songs: {
         create: enrichedSongs.map((song) => ({
           title: song.title,
@@ -64,4 +66,35 @@ export async function createPlaylist(
     })),
     createdAt: playlist.createdAt.toISOString(),
   };
+}
+
+export async function getPlaylistsByUserId(
+  userId: string,
+): Promise<PlaylistResponse[]> {
+  // Fetch all playlists for the user
+  const playlists = await prisma.playlist.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      songs: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  // Transform to response format
+  return playlists.map((playlist) => ({
+    id: playlist.id,
+    prompt: playlist.prompt,
+    title: playlist.title,
+    songs: playlist.songs.map((song) => ({
+      title: song.title,
+      artist: song.artist,
+      videoId: song.videoId,
+      thumbnail: song.thumbnail || "",
+    })),
+    createdAt: playlist.createdAt.toISOString(),
+  }));
 }
