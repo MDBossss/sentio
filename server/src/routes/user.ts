@@ -1,5 +1,5 @@
 import { Router, Router as ExpressRouter } from "express";
-import { createUser, getUserById } from "../controllers/user";
+import { createUser, getUserById, getUserPreferences, updateUserPreferences } from "../controllers/user";
 
 const router: ExpressRouter = Router();
 
@@ -13,5 +13,17 @@ router.post("/api/users", createUser);
  * GET /api/users/:id - Get user by ID (Clerk ID)
  */
 router.get("/api/users/:id", getUserById);
+
+/**
+ * GET /api/users/:id/preferences - Get user preferences
+ * Returns: { preferences: null | { familiarity, genres } }
+ */
+router.get("/api/users/:id/preferences", getUserPreferences);
+
+/**
+ * PUT /api/users/:id/preferences - Update user preferences
+ * Body: { familiarity: "mainstream" | "discovery" | "mixed", genres: string[] }
+ */
+router.put("/api/users/:id/preferences", updateUserPreferences);
 
 export default router;

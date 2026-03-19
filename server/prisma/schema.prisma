@@ -11,13 +11,14 @@ datasource db {
 }
 
 model User {
-  id        String     @id           // Clerk ID
-  firstName String
-  lastName  String
-  email     String     @unique
-  imageUrl  String?
-  createdAt DateTime   @default(now())
-  playlists Playlist[]
+  id            String     @id           // Clerk ID
+  firstName     String
+  lastName      String
+  email         String     @unique
+  imageUrl      String?
+  preferences   String?    // JSON string: { "familiarity": "mainstream|discovery|mixed", "genres": ["Pop", "Rock"] }
+  createdAt     DateTime   @default(now())
+  playlists     Playlist[]
 }
 
 model Song {

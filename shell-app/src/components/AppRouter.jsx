@@ -7,12 +7,13 @@ import {
 } from "react-router-dom";
 import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import { LandingPage } from "../pages/LandingPage";
-import { MainApp } from "./MainApp";
+import { PreferencesPage } from "../pages/PreferencesPage";
+import { PreferencesGuard } from "./PreferencesGuard";
 
 /**
  * AppRouter - Main routing component
  * Routes unauthenticated users to landing page
- * Routes authenticated users to main app with micro-frontends
+ * Routes authenticated users to preferences check (if needed) or main app
  */
 export const AppRouter = () => {
   return (
@@ -33,7 +34,22 @@ export const AppRouter = () => {
           }
         />
 
-        {/* Authenticated users see main app */}
+        {/* Preferences onboarding page (for users without saved preferences) */}
+        <Route
+          path="/preferences"
+          element={
+            <>
+              <SignedOut>
+                <Navigate to="/" replace />
+              </SignedOut>
+              <SignedIn>
+                <PreferencesPage />
+              </SignedIn>
+            </>
+          }
+        />
+
+        {/* Authenticated users see main app (with preference guard) */}
         <Route
           path="/app"
           element={
@@ -42,7 +58,7 @@ export const AppRouter = () => {
                 <Navigate to="/" replace />
               </SignedOut>
               <SignedIn>
-                <MainApp />
+                <PreferencesGuard />
               </SignedIn>
             </>
           }

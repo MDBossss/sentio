@@ -86,6 +86,7 @@ The server will be running on `http://localhost:3010` by default.
 Test YouTube enrichment without requiring OpenAI API. Uses mock songs by default or accepts custom songs.
 
 **Request (Option 1: Use mock songs):**
+
 ```bash
 curl -X POST http://localhost:3010/api/test/enrich-youtube
 ```
@@ -95,9 +96,9 @@ curl -X POST http://localhost:3010/api/test/enrich-youtube
 ```json
 {
   "songs": [
-    {"artist": "Linkin Park", "title": "In the End"},
-    {"artist": "The Weeknd", "title": "Blinding Lights"},
-    {"artist": "Dua Lipa", "title": "Levitating"}
+    { "artist": "Linkin Park", "title": "In the End" },
+    { "artist": "The Weeknd", "title": "Blinding Lights" },
+    { "artist": "Dua Lipa", "title": "Levitating" }
   ]
 }
 ```
@@ -131,6 +132,7 @@ curl -X POST http://localhost:3010/api/test/enrich-youtube
 ```
 
 **Response fields:**
+
 - `message` - Summary of enrichment results
 - `songs` - Array of enriched songs with:
   - `title` - YouTube video title
