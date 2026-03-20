@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { createPlaylist, getPlaylistsByUserId } from "../service/playlist";
+import { getPresetsForUser } from "../service/presets";
 import { enrichSongsWithYouTube } from "../service/youtube";
 import { mockSongs } from "../mocks/songs";
 import { PlaylistRequest } from "../types";
@@ -96,6 +97,29 @@ export async function getUserPlaylists(
     res.status(200).json(playlists);
   } catch (error) {
     console.error("Error in getUserPlaylists controller:", error);
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+    res.status(500).json({ error: message });
+  }
+}
+
+export async function getPresets(req: Request, res: Response): Promise<void> {
+  try {
+    const { userId } = req.params as { userId: string };
+
+    // Validation
+    if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
+      res.status(400).json({ error: "Valid userId is required" });
+      return;
+    }
+
+    // Call service to get presets
+    const presets = await getPresetsForUser(userId);
+
+    // Return presets - can be empty if user has no preferences
+    res.status(200).json({ presets });
+  } catch (error) {
+    console.error("Error in getPresets controller:", error);
     const message =
       error instanceof Error ? error.message : "Internal server error";
     res.status(500).json({ error: message });

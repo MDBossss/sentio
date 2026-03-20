@@ -17,6 +17,13 @@ export interface Playlist {
   createdAt: string;
 }
 
+export interface Preset {
+  emoji: string;
+  text: string; // Display title
+  description: string; // Prompt for OpenAI
+  genre: string;
+}
+
 export async function getPlaylistsByUserId(
   userId: string,
 ): Promise<Playlist[]> {
@@ -61,5 +68,22 @@ export async function createPlaylist(
       error instanceof Error ? error.message : "Unknown error",
     );
     throw error;
+  }
+}
+
+export async function fetchPresets(userId: string): Promise<Preset[]> {
+  try {
+    console.log(`[API] Fetching presets for user: ${userId}`);
+    const response = await axios.get<{ presets: Preset[] }>(
+      `${API_BASE_URL}/api/presets/${userId}`,
+    );
+    console.log(`[API] Presets fetched:`, response.data.presets);
+    return response.data.presets;
+  } catch (error) {
+    console.error(
+      `[API] Error fetching presets:`,
+      error instanceof Error ? error.message : "Unknown error",
+    );
+    return [];
   }
 }
