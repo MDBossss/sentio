@@ -60,10 +60,27 @@ export default function PlayerApp(container: HTMLElement) {
         </button>
         <button
           type="button"
-          class={`inline-flex h-12 w-12 items-center justify-center rounded-full bg-emerald-400 text-xl ${theme() === "light" ? "text-white" : "text-zinc-950"} shadow-lg shadow-emerald-500/30 transition hover:scale-105 hover:bg-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300`}
+          disabled={currentTrack() === "No track playing"}
+          class={`inline-flex h-12 w-12 items-center justify-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 ${
+            currentTrack() === "No track playing"
+              ? "bg-muted/40 text-muted-foreground cursor-not-allowed opacity-50"
+              : `bg-emerald-400 text-xl ${theme() === "light" ? "text-white" : "text-zinc-950"} shadow-lg shadow-emerald-500/30 hover:scale-105 hover:bg-emerald-300 focus-visible:ring-emerald-300`
+          }`}
           onClick={togglePlayPause}
-          title={playing() ? "Pause" : "Play"}
-          aria-label={playing() ? "Pause" : "Play"}
+          title={
+            currentTrack() === "No track playing"
+              ? "Select a song to play"
+              : playing()
+                ? "Pause"
+                : "Play"
+          }
+          aria-label={
+            currentTrack() === "No track playing"
+              ? "Select a song to play"
+              : playing()
+                ? "Pause"
+                : "Play"
+          }
         >
           {playing() ? <Pause size={20} /> : <Play size={20} />}
         </button>

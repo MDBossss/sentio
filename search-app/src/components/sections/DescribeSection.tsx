@@ -27,7 +27,12 @@ export const DescribeSection: React.FC<DescribeSectionProps> = ({ theme }) => {
         </div>
         <button
           type="button"
-          className={`inline-flex items-center gap-2 rounded-full border border-white/10 bg-emerald-400 px-4 py-2 text-xs font-semibold uppercase tracking-wider ${theme === "light" ? "text-white" : "text-zinc-950"} shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-300`}
+          disabled={prompt.length < 5}
+          className={`inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-wider shadow-lg transition ${
+            prompt.length < 5
+              ? "bg-muted/40 text-muted-foreground cursor-not-allowed opacity-50"
+              : `bg-emerald-400 ${theme === "light" ? "text-white" : "text-zinc-950"} shadow-emerald-500/30 hover:bg-emerald-300`
+          }`}
         >
           <Sparkles size={14} />
           Generate
