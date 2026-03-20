@@ -1,50 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useAuth } from "@clerk/clerk-react";
-import { Loader2 } from "lucide-react";
-import { fetchPresets, Preset } from "@/api/playlists";
-import axios from "axios";
-
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+import { Preset } from "@/api/playlists";
+import { usePresets } from "@/hooks/usePresets";
 
 interface PresetsSectionProps {
   onPresetSelect: (description: string) => void;
-}
-
-interface UserPreferences {
-  familiarity: "mainstream" | "discovery" | "mixed";
-  genres: string[];
 }
 
 export const PresetsSection: React.FC<PresetsSectionProps> = ({
   onPresetSelect,
 }) => {
   const { userId, isLoaded } = useAuth();
-  const [presets, setPresets] = useState<Preset[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Fetch presets on mount
-  useEffect(() => {
-    if (!isLoaded || !userId) return;
-
-    const fetchData = async () => {
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        // Fetch presets
-        const presetsData = await fetchPresets(userId);
-        setPresets(presetsData);
-      } catch (err) {
-        console.error("Error fetching presets:", err);
-        setError("Failed to load presets");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [userId, isLoaded]);
+  const { data: presets = [], isLoading, error } = usePresets(userId, isLoaded);
 
   const handlePresetClick = (preset: Preset) => {
     console.log(
@@ -59,7 +26,7 @@ export const PresetsSection: React.FC<PresetsSectionProps> = ({
         <p className="text-xs uppercase tracking-widest text-muted-foreground">
           Presets for right now
         </p>
-        {error && <p className="text-xs text-destructive">{error}</p>}
+        {error && <p className="text-xs text-destructive">{error.message}</p>}
         {isLoading && (
           <p className="text-xs text-muted-foreground">Loading...</p>
         )}

@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
+import { PrismaClient } from "@prisma/client";
 import { createPlaylist, getPlaylistsByUserId } from "../service/playlist";
 import { getPresetsForUser } from "../service/presets";
 import { enrichSongsWithYouTube } from "../service/youtube";
 import { mockSongs } from "../mocks/songs";
 import { PlaylistRequest } from "../types";
+
+const prisma = new PrismaClient();
 
 export async function generatePlaylist(
   req: Request,
@@ -47,8 +50,9 @@ export async function testYouTubeEnrichment(
   res: Response,
 ): Promise<void> {
   try {
-    const { songs } = req.body as {
+    const { songs, userId } = req.body as {
       songs?: Array<{ artist: string; title: string }>;
+      userId?: string;
     };
 
     // Use provided songs or mock songs for testing
@@ -59,16 +63,57 @@ export async function testYouTubeEnrichment(
       return;
     }
 
+    if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
+      res.status(400).json({ error: "Valid userId is required" });
+      return;
+    }
+
     console.log(
       `Testing YouTube enrichment with ${songsToEnrich.length} songs...`,
     );
 
-    // Enrich with YouTube data only
+    // Enrich with YouTube data
     const enrichedSongs = await enrichSongsWithYouTube(songsToEnrich);
 
-    res.status(200).json({
-      message: `Successfully enriched ${enrichedSongs.length} songs`,
-      songs: enrichedSongs,
+    if (enrichedSongs.length === 0) {
+      res.status(400).json({ error: "Failed to enrich any songs" });
+      return;
+    }
+
+    // Save to database as a playlist
+    const title = "Test Playlist";
+    const prompt = "YouTube enrichment test";
+
+    const playlist = await prisma.playlist.create({
+      data: {
+        prompt,
+        title,
+        userId,
+        songs: {
+          create: enrichedSongs.map((song) => ({
+            title: song.title,
+            artist: song.artist,
+            videoId: song.videoId,
+            thumbnail: song.thumbnail,
+          })),
+        },
+      },
+      include: {
+        songs: true,
+      },
+    });
+
+    res.status(201).json({
+      id: playlist.id,
+      prompt: playlist.prompt,
+      title: playlist.title,
+      songs: playlist.songs.map((song) => ({
+        title: song.title,
+        artist: song.artist,
+        videoId: song.videoId,
+        thumbnail: song.thumbnail || "",
+      })),
+      createdAt: playlist.createdAt.toISOString(),
     });
   } catch (error) {
     console.error("Error in testYouTubeEnrichment controller:", error);
