@@ -25,7 +25,7 @@ export const PreferencesGuard = () => {
     const checkPreferences = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:3010/api/users/${userId}/preferences`
+          `http://localhost:3010/api/users/${userId}/preferences`,
         );
 
         const { preferences } = response.data;
@@ -51,12 +51,22 @@ export const PreferencesGuard = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0a0a0a] text-white">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 mb-4 rounded-full bg-emerald-500/20 border border-emerald-500/50">
-            <div className="animate-spin w-10 h-10 rounded-full border-2 border-transparent border-t-emerald-400 border-r-emerald-400" />
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[hsl(20_14.3%_4.1%)]">
+        <div className="space-y-6 text-center">
+          {/* Animated Spinner */}
+          <div className="flex justify-center">
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-[hsl(12_6.5%_15.1%)] border-t-[hsl(160_70%_45%)]"></div>
           </div>
-          <p className="text-sm text-zinc-400">Loading your profile...</p>
+
+          {/* Loading Text */}
+          <div className="space-y-2">
+            <p className="text-lg font-medium text-[hsl(60_9.1%_97.8%)]">
+              Loading your profile
+            </p>
+            <p className="text-sm text-[hsl(24_5.4%_63.9%)]">
+              Setting up your preferences...
+            </p>
+          </div>
         </div>
       </div>
     );
