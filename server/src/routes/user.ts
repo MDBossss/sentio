@@ -1,5 +1,10 @@
 import { Router, Router as ExpressRouter } from "express";
-import { createUser, getUserById, getUserPreferences, updateUserPreferences } from "../controllers/user";
+import {
+  createUser,
+  getUserById,
+  getUserPreferences,
+  updateUserPreferences,
+} from "../controllers/user";
 
 const router: ExpressRouter = Router();
 
@@ -11,8 +16,11 @@ router.post("/api/users", createUser);
 
 /**
  * GET /api/users/:id - Get user by ID (Clerk ID)
+ * POST /api/users/:id - Get user or create if needed
+ * Body (POST): { firstName, lastName, email }
  */
 router.get("/api/users/:id", getUserById);
+router.post("/api/users/:id", getUserById); // Reuse same handler for both GET and POST
 
 /**
  * GET /api/users/:id/preferences - Get user preferences

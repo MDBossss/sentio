@@ -54,15 +54,32 @@ export async function createUser(req: Request, res: Response): Promise<void> {
 export async function getUserById(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
+    const { firstName, lastName, email } = req.body;
 
     if (!id) {
       res.status(400).json({ error: "User ID is required" });
       return;
     }
 
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { id },
     });
+
+    // If user doesn't exist and we have user info, create them
+    if (!user && (firstName || lastName || email)) {
+      console.log(`[UserController] Auto-creating user: ${id}`);
+      user = await prisma.user.create({
+        data: {
+          id,
+          firstName: firstName || "",
+          lastName: lastName || "",
+          email: email || "",
+          preferences: null,
+        },
+      });
+      res.status(201).json(user);
+      return;
+    }
 
     if (!user) {
       res.status(404).json({ error: "User not found" });
@@ -82,7 +99,7 @@ export async function getUserById(req: Request, res: Response): Promise<void> {
  */
 export async function getUserPreferences(
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> {
   try {
     const { id } = req.params;
@@ -114,15 +131,15 @@ export async function getUserPreferences(
 
 /**
  * Update user preferences
- * Body: { familiarity: "mainstream" | "discovery" | "mixed", genres: string[] }
+ * Body: { familiarity: "mainstream" | "discovery" | "mixed", genres: string[], firstName?, lastName?, email? }
  */
 export async function updateUserPreferences(
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> {
   try {
     const { id } = req.params;
-    const { familiarity, genres } = req.body;
+    const { familiarity, genres, firstName, lastName, email } = req.body;
 
     // Validation
     if (!id) {
@@ -145,19 +162,40 @@ export async function updateUserPreferences(
       return;
     }
 
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({
-      where: { id },
-    });
-
-    if (!existingUser) {
-      res.status(404).json({ error: "User not found" });
-      return;
-    }
-
     // Store preferences as JSON string
     const preferencesJson = JSON.stringify({ familiarity, genres });
 
+    // Check if user exists
+    let existingUser = await prisma.user.findUnique({
+      where: { id },
+    });
+
+    // If user doesn't exist, create them with provided info
+    if (!existingUser) {
+      if (!firstName || !lastName || !email) {
+        res.status(400).json({
+          error:
+            "New user requires firstName, lastName, and email to be provided",
+        });
+        return;
+      }
+
+      console.log(`[UserController] Auto-creating new user: ${id}`);
+      existingUser = await prisma.user.create({
+        data: {
+          id,
+          firstName,
+          lastName,
+          email,
+          preferences: preferencesJson,
+        },
+      });
+
+      res.status(201).json(existingUser);
+      return;
+    }
+
+    // Update existing user's preferences
     const updatedUser = await prisma.user.update({
       where: { id },
       data: { preferences: preferencesJson },

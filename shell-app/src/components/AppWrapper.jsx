@@ -49,19 +49,18 @@ export const AppWrapper = ({ children }) => {
           user.id,
         );
 
-        // Check if user exists
-        const existingUser = await fetchUserById(user.id);
+        // Check if user exists, or create if needed
+        const syncedUser = await fetchUserById(user.id, {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+        });
 
-        if (!existingUser) {
-          console.log("[AppWrapper] User not in database, creating...");
-          const createdUser = await createUser(user);
-          if (!createdUser) {
-            throw new Error("Failed to create user in database");
-          }
-          console.log("[AppWrapper] User created successfully:", createdUser);
-        } else {
-          console.log("[AppWrapper] User already exists in database");
+        if (!syncedUser) {
+          throw new Error("Failed to sync user with database");
         }
+
+        console.log("[AppWrapper] User synced successfully:", syncedUser);
 
         setUserSynced(true);
       } catch (error) {

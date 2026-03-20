@@ -5,22 +5,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import LibrarySidebar from "./LibrarySidebar.vue";
 import { getPlaylistsByUserId } from "../api/playlists";
 
 const playlists = ref([]);
 const isLoadingPlaylists = ref(false);
 
-// Fetch playlists on mount
-onMounted(async () => {
-  const userId = window.sentioUserId;
-
-  if (!userId) {
-    console.warn("[LibraryApp] No userId found on window.sentioUserId");
-    return;
-  }
-
+const fetchPlaylists = async (userId) => {
   isLoadingPlaylists.value = true;
   try {
     const fetchedPlaylists = await getPlaylistsByUserId(userId);
@@ -42,5 +34,32 @@ onMounted(async () => {
   } finally {
     isLoadingPlaylists.value = false;
   }
+};
+
+// Fetch playlists on mount
+onMounted(async () => {
+  const userId = window.sentioUserId;
+
+  if (!userId) {
+    console.warn("[LibraryApp] No userId found on window.sentioUserId");
+    return;
+  }
+
+  await fetchPlaylists(userId);
+
+  // Listen for playlist creation events from search-app
+  const handlePlaylistCreated = (event) => {
+    console.log("[LibraryApp] Playlist created event received, refetching...");
+    fetchPlaylists(userId);
+  };
+
+  window.addEventListener("sentio-playlist-created", handlePlaylistCreated);
+
+  onUnmounted(() => {
+    window.removeEventListener(
+      "sentio-playlist-created",
+      handlePlaylistCreated,
+    );
+  });
 });
 </script>

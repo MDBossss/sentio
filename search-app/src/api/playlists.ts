@@ -29,10 +29,12 @@ export async function getPlaylistsByUserId(
 ): Promise<Playlist[]> {
   try {
     console.log(`[API] Fetching playlists for user: ${userId}`);
+
     const response = await axios.get<Playlist[]>(
       `${API_BASE_URL}/api/playlists/${userId}`,
     );
     console.log(`[API] Playlists fetched:`, response.data);
+
     return response.data;
   } catch (error) {
     console.error(
@@ -52,6 +54,7 @@ export async function createPlaylist(
     console.log(
       `[API] Creating playlist for user: ${userId} with prompt: "${prompt}"`,
     );
+
     const response = await axios.post<Playlist>(
       `${API_BASE_URL}/api/generate-playlist`,
       {
@@ -60,7 +63,9 @@ export async function createPlaylist(
         userId,
       },
     );
+
     console.log(`[API] Playlist created:`, response.data);
+
     return response.data;
   } catch (error) {
     console.error(
@@ -77,7 +82,9 @@ export async function fetchPresets(userId: string): Promise<Preset[]> {
     const response = await axios.get<{ presets: Preset[] }>(
       `${API_BASE_URL}/api/presets/${userId}`,
     );
+
     console.log(`[API] Presets fetched:`, response.data.presets);
+
     return response.data.presets;
   } catch (error) {
     console.error(
@@ -85,5 +92,25 @@ export async function fetchPresets(userId: string): Promise<Preset[]> {
       error instanceof Error ? error.message : "Unknown error",
     );
     return [];
+  }
+}
+
+export async function testYouTubeEnrichment(userId: string): Promise<Playlist> {
+  try {
+    console.log(`[API] Testing YouTube enrichment for user: ${userId}`);
+    const response = await axios.post<Playlist>(
+      `${API_BASE_URL}/api/test/enrich-youtube`,
+      { userId },
+    );
+
+    console.log(`[API] Test playlist created:`, response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      `[API] Error testing YouTube enrichment:`,
+      error instanceof Error ? error.message : "Unknown error",
+    );
+    throw error;
   }
 }

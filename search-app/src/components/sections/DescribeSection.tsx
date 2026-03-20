@@ -4,9 +4,15 @@ import { PresetsSection } from "./PresetsSection";
 
 interface DescribeSectionProps {
   theme: "dark" | "light";
+  onGenerateTest?: () => void;
+  isGenerating?: boolean;
 }
 
-export const DescribeSection: React.FC<DescribeSectionProps> = ({ theme }) => {
+export const DescribeSection: React.FC<DescribeSectionProps> = ({
+  theme,
+  onGenerateTest,
+  isGenerating = false,
+}) => {
   const [prompt, setPrompt] = useState("");
 
   const handlePresetSelect = (description: string) => {
@@ -21,21 +27,24 @@ export const DescribeSection: React.FC<DescribeSectionProps> = ({ theme }) => {
           <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
             AI vibe prompt
           </p>
+
           <h2 className="mt-2 text-2xl font-semibold text-foreground">
             Describe your mood
           </h2>
         </div>
+
         <button
           type="button"
-          disabled={prompt.length < 5}
+          disabled={prompt.length < 5 || isGenerating}
+          onClick={onGenerateTest}
           className={`inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-wider shadow-lg transition ${
-            prompt.length < 5
+            prompt.length < 5 || isGenerating
               ? "bg-muted/40 text-muted-foreground cursor-not-allowed opacity-50"
               : `bg-emerald-400 ${theme === "light" ? "text-white" : "text-zinc-950"} shadow-emerald-500/30 hover:bg-emerald-300`
           }`}
         >
           <Sparkles size={14} />
-          Generate
+          {isGenerating ? "Generating..." : "Generate"}
         </button>
       </div>
 

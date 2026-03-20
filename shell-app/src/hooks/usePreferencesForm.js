@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import axios from "axios";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 
 const STORAGE_KEY = "sentio-preferences-form";
 const ALL_GENRES = [
@@ -28,6 +28,7 @@ const ALL_GENRES = [
 
 export const usePreferencesForm = () => {
   const { userId } = useAuth();
+  const { user } = useUser();
   const [currentStep, setCurrentStep] = useState(0);
   const [preferences, setPreferences] = useState({
     familiarity: "",
@@ -103,15 +104,21 @@ export const usePreferencesForm = () => {
     setError(null);
 
     try {
+      const payload = {
+        familiarity: preferences.familiarity,
+        genres: preferences.genres,
+        // Include user info for new user creation if needed
+        firstName: user?.firstName || "",
+        lastName: user?.lastName || "",
+        email: user?.emailAddresses?.[0]?.emailAddress || "",
+      };
+
       const response = await axios.put(
         `http://localhost:3010/api/users/${userId}/preferences`,
-        {
-          familiarity: preferences.familiarity,
-          genres: preferences.genres,
-        }
+        payload,
       );
 
-      if (response.status === 200) {
+      if (response.status === 200 || response.status === 201) {
         // Clear localStorage after successful save
         localStorage.removeItem(STORAGE_KEY);
         return true;
@@ -128,7 +135,7 @@ export const usePreferencesForm = () => {
     } finally {
       setLoading(false);
     }
-  }, [userId, preferences, canProceedStep]);
+  }, [userId, user, preferences, canProceedStep]);
 
   const clearForm = useCallback(() => {
     setPreferences({ familiarity: "", genres: [] });

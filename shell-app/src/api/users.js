@@ -2,17 +2,21 @@ import axios from "axios";
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
-export async function fetchUserById(userId) {
+export async function fetchUserById(userId, userInfo = {}) {
   try {
-    console.log(`[API] Fetching user: ${userId}`);
-    const response = await axios.get(`${API_BASE_URL}/api/users/${userId}`);
-    console.log(`[API] User found:`, response.data);
+    console.log(`[API] Fetching/syncing user: ${userId}`);
+    // Use POST to allow creating user if needed
+    const response = await axios.post(
+      `${API_BASE_URL}/api/users/${userId}`,
+      userInfo,
+    );
+    console.log(`[API] User synced:`, response.data);
     return response.data;
   } catch (error) {
     console.log(
-      `[API] User not found (${error.response?.status || error.message})`,
+      `[API] User sync failed (${error.response?.status || error.message})`,
     );
-    return null; // User not found
+    return null;
   }
 }
 
