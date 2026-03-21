@@ -1,4 +1,4 @@
-import { createSignal, onMount, onCleanup } from "solid-js";
+import { createSignal, onMount, onCleanup, createEffect } from "solid-js";
 import { render } from "solid-js/web";
 import {
   Music,
@@ -8,6 +8,9 @@ import {
   Pause,
   Volume2,
 } from "lucide-solid";
+import { useYoutubePlayer } from "../hooks/useYoutubePlayer";
+import { usePlayerState } from "../hooks/usePlayerState";
+import { formatTime } from "../utils/formatTime";
 
 interface PlaylistSong {
   title: string;
@@ -24,43 +27,100 @@ interface Playlist {
 }
 
 export default function PlayerApp(container: HTMLElement) {
-  const [playing, setPlaying] = createSignal(false);
-  const [currentTrack, setCurrentTrack] = createSignal("No track playing");
-  const [currentArtist, setCurrentArtist] = createSignal("");
-  const [volume, setVolume] = createSignal(70);
-  const [theme, setTheme] = createSignal<"dark" | "light">("dark");
-  const [currentPlaylist, setCurrentPlaylist] = createSignal<Playlist | null>(
-    null,
-  );
-  const [currentSongIndex, setCurrentSongIndex] = createSignal(0);
+  const player = usePlayerState();
+  const [playerReady, setPlayerReady] = createSignal(false);
+  const [lastLoadedSongIndex, setLastLoadedSongIndex] = createSignal(-1);
+  const [stateRestored, setStateRestored] = createSignal(false);
 
-  const togglePlayPause = () => setPlaying(!playing());
+  const ytPlayer = useYoutubePlayer("yt-player-container");
+  let progressIntervalId: number;
+  let readyCheckInterval: number;
 
-  const updateCurrentTrack = () => {
-    const playlist = currentPlaylist();
-    const index = currentSongIndex();
+  const togglePlayPause = () => player.togglePlayPause();
+
+  const updateCurrentTrack = (autoPlay = true) => {
+    const playlist = player.state.currentPlaylist;
+    const index = player.state.currentSongIndex;
 
     if (playlist && playlist.songs && playlist.songs[index]) {
       const song = playlist.songs[index];
-      setCurrentTrack(song.title);
-      setCurrentArtist(song.artist);
+      player.setState("currentTrack", song.title);
+      player.setState("currentArtist", song.artist);
+
+      if (
+        song.videoId &&
+        ytPlayer.isReady() &&
+        index !== lastLoadedSongIndex()
+      ) {
+        ytPlayer.loadVideoById(song.videoId);
+        setLastLoadedSongIndex(index);
+        if (autoPlay) {
+          setTimeout(() => {
+            if (ytPlayer.isReady()) {
+              ytPlayer.play();
+              player.setState("playing", true);
+            }
+          }, 100);
+        } else {
+          setTimeout(() => {
+            if (ytPlayer.isReady()) {
+              ytPlayer.pause();
+              player.setState("playing", false);
+            }
+          }, 100);
+        }
+      } else {
+        const reason = [];
+        if (!song.videoId) reason.push("no videoId");
+        if (!ytPlayer.isReady()) reason.push("player not ready");
+        if (index === lastLoadedSongIndex())
+          reason.push("index already loaded");
+      }
+
+      if (
+        autoPlay &&
+        song.videoId &&
+        ytPlayer.isReady() &&
+        index === lastLoadedSongIndex()
+      ) {
+        ytPlayer.play();
+        player.setState("playing", true);
+      } else if (!autoPlay && index === lastLoadedSongIndex()) {
+      }
+      {
+        const videoId =
+          player.state.currentPlaylist?.songs[player.state.currentSongIndex]
+            ?.videoId;
+      }
     }
   };
 
+  const nextTrack = () => {
+    player.nextTrack();
+    updateCurrentTrack(true);
+  };
+  const prevTrack = () => {
+    player.prevTrack();
+    updateCurrentTrack(true);
+  };
+
   onMount(() => {
-    // Restore from localStorage
+    readyCheckInterval = window.setInterval(() => {
+      if (ytPlayer.isReady() && !playerReady()) {
+        setPlayerReady(true);
+        clearInterval(readyCheckInterval);
+      }
+    }, 100);
+
     const storedTheme = localStorage.getItem("sentio-theme");
     const initialTheme = storedTheme === "light" ? "light" : "dark";
-    setTheme(initialTheme);
+    player.setState("theme", initialTheme);
 
-    const storedPlaylistId = localStorage.getItem("sentio-current-playlist-id");
     const storedPlaylist = localStorage.getItem("sentio-current-playlist");
     if (storedPlaylist) {
       try {
         const playlist = JSON.parse(storedPlaylist);
-        setCurrentPlaylist(playlist);
-        setCurrentSongIndex(0);
-        updateCurrentTrack();
+        player.setPlaylist(playlist, 0);
       } catch (e) {
         console.error(
           "[PlayerApp] Failed to restore playlist from localStorage",
@@ -69,139 +129,233 @@ export default function PlayerApp(container: HTMLElement) {
       }
     }
 
-    // Theme change listener
     const themeHandler = (event: Event) => {
       const detail = (event as CustomEvent).detail as {
         theme?: "dark" | "light";
       };
       if (detail?.theme) {
-        setTheme(detail.theme);
+        player.setState("theme", detail.theme);
       }
     };
 
     window.addEventListener("sentio-theme-change", themeHandler);
 
-    // Playlist selection listener
     const playlistHandler = (event: Event) => {
-      const detail = (event as CustomEvent).detail as { playlist: Playlist };
+      const detail = (event as CustomEvent).detail as {
+        playlist: Playlist;
+        startIndex?: number;
+        startVideoId?: string;
+      };
+
       if (detail?.playlist) {
         const playlist = detail.playlist;
-        setCurrentPlaylist(playlist);
-        setCurrentSongIndex(0);
+        player.setPlaylist(playlist, detail.startIndex, detail.startVideoId);
 
-        // Persist to localStorage
         localStorage.setItem("sentio-current-playlist-id", String(playlist.id));
         localStorage.setItem(
           "sentio-current-playlist",
           JSON.stringify(playlist),
         );
 
-        // Start playing
-        setPlaying(true);
-
-        // Update display
+        player.setState("playing", true);
         updateCurrentTrack();
-
-        console.log(
-          "[PlayerApp] Playlist selected:",
-          playlist.title,
-          "Now playing:",
-          playlist.songs[0]?.title,
-        );
       }
     };
 
     window.addEventListener("sentio-playlist-selected", playlistHandler);
 
+    const beforeUnloadHandler = () => {
+      localStorage.setItem(
+        "sentio-player-playing",
+        String(player.state.playing),
+      );
+      localStorage.setItem("sentio-player-volume", String(player.state.volume));
+      localStorage.setItem(
+        "sentio-player-time",
+        String(player.state.currentTime),
+      );
+    };
+
+    window.addEventListener("beforeunload", beforeUnloadHandler);
+
     onCleanup(() => {
       window.removeEventListener("sentio-theme-change", themeHandler);
       window.removeEventListener("sentio-playlist-selected", playlistHandler);
+      window.removeEventListener("beforeunload", beforeUnloadHandler);
+      clearInterval(readyCheckInterval);
+    });
+  });
+
+  createEffect(() => {
+    if (!playerReady()) return;
+    if (player.state.playing) {
+      ytPlayer.play();
+    } else {
+      ytPlayer.pause();
+    }
+  });
+
+  // Load initial track when player becomes ready
+  createEffect(() => {
+    if (!playerReady() || lastLoadedSongIndex() !== -1) return;
+    updateCurrentTrack(false);
+  });
+
+  createEffect(() => {
+    if (!playerReady()) return;
+    ytPlayer.setVolume(player.state.volume);
+  });
+
+  createEffect(() => {
+    if (!playerReady() || stateRestored()) return;
+    console.log("[PlayerApp] First-time state restoration effect fired");
+
+    const storedVolume = localStorage.getItem("sentio-player-volume");
+    if (storedVolume) {
+      player.setState("volume", parseInt(storedVolume));
+    }
+
+    const storedPlaying = localStorage.getItem("sentio-player-playing");
+    if (player.state.currentPlaylist) {
+      if (storedPlaying === "true") {
+        player.setState("playing", true);
+      } else if (storedPlaying === "false") {
+        player.setState("playing", false);
+      }
+    }
+
+    setStateRestored(true);
+  });
+
+  onMount(() => {
+    progressIntervalId = window.setInterval(() => {
+      if (playerReady() && ytPlayer.isReady()) {
+        player.setState("currentTime", ytPlayer.getCurrentTime());
+        player.setState("duration", ytPlayer.getDuration());
+      }
+    }, 500);
+
+    onCleanup(() => {
+      clearInterval(progressIntervalId);
     });
   });
 
   const PlayerContent = () => (
-    <div class="flex items-center justify-between gap-6 border-t border-border/60 bg-background/90 px-5 py-4 text-foreground shadow-3xl backdrop-blur">
-      <div class="min-w-[200px] flex-1">
-        <div class="text-xs uppercase tracking-wider text-muted-foreground">
-          Now Playing
-        </div>
-        <div class="mt-1 flex items-center gap-2 text-sm font-semibold text-emerald-400">
-          <span class="text-base text-emerald-400">
-            <Music size={16} />
-          </span>
-          <div class="min-w-0 flex-1">
-            <div class="truncate">{currentTrack()}</div>
-            {currentArtist() && (
-              <div class="truncate text-xs text-muted-foreground">
-                {currentArtist()}
-              </div>
-            )}
+    <>
+      <div
+        id="yt-player-container"
+        style={{
+          position: "absolute",
+          left: "-9999px",
+          width: "1px",
+          height: "1px",
+        }}
+      />
+
+      {player.state.currentPlaylist && (
+        <div class="w-full border-b border-border/40 bg-background/60 px-5 py-2">
+          <div class="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>{formatTime(player.state.currentTime)}</span>
+            <div class="flex-1 h-1 bg-muted/40 rounded-full overflow-hidden">
+              <div
+                class="h-full bg-emerald-400 transition-all"
+                style={{
+                  width: `${player.state.duration > 0 ? (player.state.currentTime / player.state.duration) * 100 : 0}%`,
+                }}
+              />
+            </div>
+            <span>{formatTime(player.state.duration)}</span>
           </div>
         </div>
-      </div>
+      )}
 
-      <div class="flex items-center gap-3">
-        <button
-          type="button"
-          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-muted/40 text-lg text-foreground shadow-sm transition hover:scale-105 hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
-          title="Previous"
-          aria-label="Previous track"
-        >
-          <SkipBack size={18} />
-        </button>
-        <button
-          type="button"
-          disabled={currentTrack() === "No track playing"}
-          class={`inline-flex h-12 w-12 items-center justify-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 ${
-            currentTrack() === "No track playing"
-              ? "bg-muted/40 text-muted-foreground cursor-not-allowed opacity-50"
-              : `bg-emerald-400 text-xl ${theme() === "light" ? "text-white" : "text-zinc-950"} shadow-lg shadow-emerald-500/30 hover:scale-105 hover:bg-emerald-300 focus-visible:ring-emerald-300`
-          }`}
-          onClick={togglePlayPause}
-          title={
-            currentTrack() === "No track playing"
-              ? "Select a song to play"
-              : playing()
-                ? "Pause"
-                : "Play"
-          }
-          aria-label={
-            currentTrack() === "No track playing"
-              ? "Select a song to play"
-              : playing()
-                ? "Pause"
-                : "Play"
-          }
-        >
-          {playing() ? <Pause size={20} /> : <Play size={20} />}
-        </button>
-        <button
-          type="button"
-          class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-muted/40 text-lg text-foreground shadow-sm transition hover:scale-105 hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
-          title="Next"
-          aria-label="Next track"
-        >
-          <SkipForward size={18} />
-        </button>
-      </div>
+      <div class="flex items-center justify-between gap-6 border-t border-border/60 bg-background/90 px-5 py-4 text-foreground shadow-3xl backdrop-blur">
+        <div class="min-w-[200px] flex-1">
+          <div class="text-xs uppercase tracking-wider text-muted-foreground">
+            {player.state.playing ? "Now Playing" : "Paused"}
+          </div>
+          <div class="mt-1 flex items-center gap-2 text-sm font-semibold text-emerald-400">
+            <span class="text-base text-emerald-400">
+              <Music size={16} />
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="truncate">{player.state.currentTrack}</div>
+              {player.state.currentArtist && (
+                <div class="truncate text-xs text-muted-foreground">
+                  {player.state.currentArtist}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-      <div class="flex min-w-[180px] items-center gap-3">
-        <span class="text-base">
-          <Volume2 size={16} />
-        </span>
-        <input
-          type="range"
-          min="0"
-          max="100"
-          value={volume()}
-          onInput={(e) => setVolume(Number(e.currentTarget.value))}
-          class="h-1 w-28 cursor-pointer appearance-none rounded-full bg-muted/60 accent-emerald-400"
-        />
-        <span class="min-w-[36px] text-xs text-muted-foreground">
-          {volume()}%
-        </span>
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={prevTrack}
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-muted/40 text-lg text-foreground shadow-sm transition hover:scale-105 hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+            title="Previous"
+            aria-label="Previous track"
+          >
+            <SkipBack size={18} />
+          </button>
+          <button
+            type="button"
+            disabled={player.state.currentTrack === "No track playing"}
+            class={`inline-flex h-12 w-12 items-center justify-center rounded-full transition focus-visible:outline-none focus-visible:ring-2 ${
+              player.state.currentTrack === "No track playing"
+                ? "bg-muted/40 text-muted-foreground cursor-not-allowed opacity-50"
+                : `bg-emerald-400 text-xl ${player.state.theme === "light" ? "text-white" : "text-zinc-950"} shadow-lg shadow-emerald-500/30 hover:scale-105 hover:bg-emerald-300 focus-visible:ring-emerald-300`
+            }`}
+            onClick={togglePlayPause}
+            title={
+              player.state.currentTrack === "No track playing"
+                ? "Select a song to play"
+                : player.state.playing
+                  ? "Pause"
+                  : "Play"
+            }
+            aria-label={
+              player.state.currentTrack === "No track playing"
+                ? "Select a song to play"
+                : player.state.playing
+                  ? "Pause"
+                  : "Play"
+            }
+          >
+            {player.state.playing ? <Pause size={20} /> : <Play size={20} />}
+          </button>
+          <button
+            type="button"
+            onClick={nextTrack}
+            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-muted/40 text-lg text-foreground shadow-sm transition hover:scale-105 hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+            title="Next"
+            aria-label="Next track"
+          >
+            <SkipForward size={18} />
+          </button>
+        </div>
+
+        <div class="flex min-w-[180px] items-center gap-3">
+          <span class="text-base">
+            <Volume2 size={16} />
+          </span>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={player.state.volume}
+            onInput={(e) =>
+              player.setState("volume", Number(e.currentTarget.value))
+            }
+            class="h-1 w-28 cursor-pointer appearance-none rounded-full bg-muted/60 accent-emerald-400"
+          />
+          <span class="min-w-[36px] text-xs text-muted-foreground">
+            {player.state.volume}%
+          </span>
+        </div>
       </div>
-    </div>
+    </>
   );
 
   const dispose = render(() => <PlayerContent />, container);
