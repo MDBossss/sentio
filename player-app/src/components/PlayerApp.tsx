@@ -9,20 +9,68 @@ import {
   Volume2,
 } from "lucide-solid";
 
+interface PlaylistSong {
+  title: string;
+  artist: string;
+  videoId: string;
+  thumbnail: string;
+}
+
+interface Playlist {
+  id: string | number;
+  title: string;
+  songs: PlaylistSong[];
+  [key: string]: any;
+}
+
 export default function PlayerApp(container: HTMLElement) {
   const [playing, setPlaying] = createSignal(false);
   const [currentTrack, setCurrentTrack] = createSignal("No track playing");
+  const [currentArtist, setCurrentArtist] = createSignal("");
   const [volume, setVolume] = createSignal(70);
   const [theme, setTheme] = createSignal<"dark" | "light">("dark");
+  const [currentPlaylist, setCurrentPlaylist] = createSignal<Playlist | null>(
+    null,
+  );
+  const [currentSongIndex, setCurrentSongIndex] = createSignal(0);
 
   const togglePlayPause = () => setPlaying(!playing());
 
+  const updateCurrentTrack = () => {
+    const playlist = currentPlaylist();
+    const index = currentSongIndex();
+
+    if (playlist && playlist.songs && playlist.songs[index]) {
+      const song = playlist.songs[index];
+      setCurrentTrack(song.title);
+      setCurrentArtist(song.artist);
+    }
+  };
+
   onMount(() => {
+    // Restore from localStorage
     const storedTheme = localStorage.getItem("sentio-theme");
     const initialTheme = storedTheme === "light" ? "light" : "dark";
     setTheme(initialTheme);
 
-    const handler = (event: Event) => {
+    const storedPlaylistId = localStorage.getItem("sentio-current-playlist-id");
+    const storedPlaylist = localStorage.getItem("sentio-current-playlist");
+    if (storedPlaylist) {
+      try {
+        const playlist = JSON.parse(storedPlaylist);
+        setCurrentPlaylist(playlist);
+        setCurrentSongIndex(0);
+        updateCurrentTrack();
+      } catch (e) {
+        console.error(
+          "[PlayerApp] Failed to restore playlist from localStorage",
+          e,
+        );
+      }
+    }
+
+    // Theme change listener
+    const themeHandler = (event: Event) => {
       const detail = (event as CustomEvent).detail as {
         theme?: "dark" | "light";
       };
@@ -31,8 +79,44 @@ export default function PlayerApp(container: HTMLElement) {
       }
     };
 
-    window.addEventListener("sentio-theme-change", handler);
-    onCleanup(() => window.removeEventListener("sentio-theme-change", handler));
+    window.addEventListener("sentio-theme-change", themeHandler);
+
+    // Playlist selection listener
+    const playlistHandler = (event: Event) => {
+      const detail = (event as CustomEvent).detail as { playlist: Playlist };
+      if (detail?.playlist) {
+        const playlist = detail.playlist;
+        setCurrentPlaylist(playlist);
+        setCurrentSongIndex(0);
+
+        // Persist to localStorage
+        localStorage.setItem("sentio-current-playlist-id", String(playlist.id));
+        localStorage.setItem(
+          "sentio-current-playlist",
+          JSON.stringify(playlist),
+        );
+
+        // Start playing
+        setPlaying(true);
+
+        // Update display
+        updateCurrentTrack();
+
+        console.log(
+          "[PlayerApp] Playlist selected:",
+          playlist.title,
+          "Now playing:",
+          playlist.songs[0]?.title,
+        );
+      }
+    };
+
+    window.addEventListener("sentio-playlist-selected", playlistHandler);
+
+    onCleanup(() => {
+      window.removeEventListener("sentio-theme-change", themeHandler);
+      window.removeEventListener("sentio-playlist-selected", playlistHandler);
+    });
   });
 
   const PlayerContent = () => (
@@ -45,7 +129,14 @@ export default function PlayerApp(container: HTMLElement) {
           <span class="text-base text-emerald-400">
             <Music size={16} />
           </span>
-          <span class="truncate">{currentTrack()}</span>
+          <div class="min-w-0 flex-1">
+            <div class="truncate">{currentTrack()}</div>
+            {currentArtist() && (
+              <div class="truncate text-xs text-muted-foreground">
+                {currentArtist()}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

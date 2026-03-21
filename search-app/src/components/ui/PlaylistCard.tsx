@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Playlist } from "@/constants/playlists";
+import { getCurrentPlaylistId } from "@/lib/currentPlaylist";
 
 interface PlaylistCardProps {
   playlist: Playlist;
@@ -7,13 +8,46 @@ interface PlaylistCardProps {
 
 export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [currentPlaylistId, setCurrentPlaylistId] = useState<string | null>(
+    getCurrentPlaylistId(),
+  );
+
+  const isNowPlaying = currentPlaylistId === String(playlist.id);
+
+  const selectPlaylist = () => {
+    window.dispatchEvent(
+      new CustomEvent("sentio-playlist-selected", {
+        detail: { playlist },
+      }),
+    );
+  };
+
+  useEffect(() => {
+    const handlePlaylistSelected = () => {
+      setCurrentPlaylistId(getCurrentPlaylistId());
+    };
+
+    window.addEventListener("sentio-playlist-selected", handlePlaylistSelected);
+
+    return () => {
+      window.removeEventListener(
+        "sentio-playlist-selected",
+        handlePlaylistSelected,
+      );
+    };
+  }, []);
 
   return (
     <button
       type="button"
-      className="relative h-40 w-40 flex-shrink-0 cursor-pointer overflow-hidden rounded-2xl border border-border/60 shadow-md transition"
+      className={`relative h-40 w-40 flex-shrink-0 cursor-pointer overflow-hidden rounded-2xl border shadow-md transition ${
+        isNowPlaying
+          ? "border-emerald-400/60 shadow-lg shadow-emerald-500/30"
+          : "border-border/60"
+      }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={selectPlaylist}
     >
       <img
         src={playlist.image}
@@ -21,7 +55,9 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
         className={`h-full w-full object-cover transition ${isHovered ? "scale-105" : "scale-100"}`}
       />
       <div
-        className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition ${isHovered ? "opacity-100" : "opacity-0"}`}
+        className={`absolute inset-0 bg-gradient-to-t via-transparent to-transparent transition ${
+          isNowPlaying ? "from-emerald-500/30" : "from-black/60"
+        } ${isHovered ? "opacity-100" : "opacity-0"}`}
       />
       <div
         className={`absolute inset-0 flex flex-col justify-end p-4 transition ${isHovered ? "opacity-100" : "opacity-0"}`}
@@ -32,7 +68,13 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
       <div
         className={`absolute inset-0 flex flex-col justify-end p-4 transition ${isHovered ? "opacity-0" : "opacity-100"}`}
       >
-        <div className="line-clamp-1 rounded-full bg-white/10 px-2 py-1 text-xs font-medium text-white backdrop-blur">
+        <div
+          className={`line-clamp-1 rounded-full px-2 py-1 text-xs font-medium backdrop-blur ${
+            isNowPlaying
+              ? "bg-emerald-500/30 text-emerald-50"
+              : "bg-white/10 text-white"
+          }`}
+        >
           {playlist.mood}
         </div>
       </div>

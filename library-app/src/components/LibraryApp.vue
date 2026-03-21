@@ -27,6 +27,10 @@ const fetchPlaylists = async (userId) => {
           playlist.songs && playlist.songs.length > 0
             ? playlist.songs[0].thumbnail
             : "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=320&q=80",
+        // Store full playlist data for event emission
+        songs: playlist.songs,
+        prompt: playlist.prompt,
+        createdAt: playlist.createdAt,
       }));
     }
   } catch (error) {

@@ -21,6 +21,10 @@ const transformPlaylist = (apiPlaylist: ApiPlaylist): PlaylistType => {
     title: apiPlaylist.title,
     mood: apiPlaylist.prompt.split(".")[0].substring(0, 50),
     image: thumbnailUrl,
+    // Include full playlist data for event emission
+    songs: apiPlaylist.songs,
+    prompt: apiPlaylist.prompt,
+    createdAt: apiPlaylist.createdAt,
   };
 };
 
