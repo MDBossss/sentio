@@ -8,9 +8,15 @@ const openai = new OpenAI({
 export async function generatePlaylistSongs(
   prompt: string,
   genres: string[],
+  familiarity: "mainstream" | "discovery" | "mixed" = "mixed",
 ): Promise<Array<{ artist: string; title: string }>> {
   try {
     const genresList = genres.join(", ");
+    const familiarityGuide = {
+      mainstream: "well-known, popular artists and songs",
+      discovery: "lesser-known gems and underrated artists",
+      mixed: "mix of both popular and lesser-known songs",
+    };
 
     const message = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -22,7 +28,7 @@ export async function generatePlaylistSongs(
         },
         {
           role: "user",
-          content: `Generate 10 songs based on this prompt: "${prompt}". Genres: ${genresList}. Return only JSON.`,
+          content: `Generate 10 songs based on this prompt: "${prompt}". Genres: ${genresList}. Music discovery preference: ${familiarityGuide[familiarity]}. Return only JSON.`,
         },
       ],
       response_format: { type: "json_object" },

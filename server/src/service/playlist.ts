@@ -9,12 +9,13 @@ export async function createPlaylist(
   prompt: string,
   genres: string[],
   userId: string,
+  familiarity: "mainstream" | "discovery" | "mixed" = "mixed",
 ): Promise<PlaylistResponse> {
-  // Generate songs using OpenAI
+  // Generate songs using OpenAI with user preferences
   console.log(
-    `Generating songs for prompt: "${prompt}" with genres: ${genres.join(", ")}`,
+    `Generating songs for prompt: "${prompt}" with genres: ${genres.join(", ")} and familiarity: ${familiarity}`,
   );
-  const songsList = await generatePlaylistSongs(prompt, genres);
+  const songsList = await generatePlaylistSongs(prompt, genres, familiarity);
 
   if (songsList.length === 0) {
     throw new Error("Failed to generate songs from OpenAI");

@@ -33,8 +33,37 @@ export async function generatePlaylist(
       return;
     }
 
+    // Fetch user preferences from database
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    // Parse user preferences to extract familiarity
+    let familiarity: "mainstream" | "discovery" | "mixed" = "mixed";
+    if (user.preferences) {
+      try {
+        const preferences = JSON.parse(user.preferences) as {
+          familiarity?: string;
+        };
+        if (
+          preferences.familiarity === "mainstream" ||
+          preferences.familiarity === "discovery" ||
+          preferences.familiarity === "mixed"
+        ) {
+          familiarity = preferences.familiarity;
+        }
+      } catch (e) {
+        console.warn("Failed to parse user preferences, using default:", e);
+      }
+    }
+
     // Call service to handle business logic
-    const playlist = await createPlaylist(prompt, genres, userId);
+    const playlist = await createPlaylist(prompt, genres, userId, familiarity);
 
     res.status(201).json(playlist);
   } catch (error) {
