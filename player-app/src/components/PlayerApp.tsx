@@ -149,7 +149,13 @@ export default function PlayerApp(container: HTMLElement) {
 
       if (detail?.playlist) {
         const playlist = detail.playlist;
-        player.setPlaylist(playlist, detail.startIndex, detail.startVideoId);
+        // Convert to plain object to avoid Solid.js store issues
+        const plainPlaylist = JSON.parse(JSON.stringify(playlist));
+        player.setPlaylist(
+          plainPlaylist,
+          detail.startIndex,
+          detail.startVideoId,
+        );
 
         localStorage.setItem("sentio-current-playlist-id", String(playlist.id));
         localStorage.setItem(
@@ -164,15 +170,45 @@ export default function PlayerApp(container: HTMLElement) {
 
     window.addEventListener("sentio-playlist-selected", playlistHandler);
 
+    const togglePlayHandler = (event: Event) => {
+      const detail = (event as CustomEvent).detail as {
+        playlistId: string | number;
+      };
+
+      if (detail?.playlistId) {
+        // If this playlist is already selected, just toggle play/pause
+        if (
+          player.state.currentPlaylist &&
+          String(player.state.currentPlaylist.id) === String(detail.playlistId)
+        ) {
+          player.togglePlayPause();
+        } else {
+          // Otherwise, this will be handled by the playlist selection
+          // which will trigger auto-play
+          player.setState("playing", true);
+          updateCurrentTrack(true);
+        }
+      }
+    };
+
+    window.addEventListener("sentio-player-toggle-play", togglePlayHandler);
+
     const beforeUnloadHandler = () => {
       localStorage.setItem(
         "sentio-player-playing",
         String(player.state.playing),
       );
+
       localStorage.setItem("sentio-player-volume", String(player.state.volume));
+
       localStorage.setItem(
         "sentio-player-time",
         String(player.state.currentTime),
+      );
+
+      localStorage.setItem(
+        "sentio-player-song-index",
+        String(player.state.currentSongIndex),
       );
     };
 
@@ -181,6 +217,10 @@ export default function PlayerApp(container: HTMLElement) {
     onCleanup(() => {
       window.removeEventListener("sentio-theme-change", themeHandler);
       window.removeEventListener("sentio-playlist-selected", playlistHandler);
+      window.removeEventListener(
+        "sentio-player-toggle-play",
+        togglePlayHandler,
+      );
       window.removeEventListener("beforeunload", beforeUnloadHandler);
       clearInterval(readyCheckInterval);
     });
@@ -193,6 +233,16 @@ export default function PlayerApp(container: HTMLElement) {
     } else {
       ytPlayer.pause();
     }
+
+    // Broadcast playing state to other apps
+    window.dispatchEvent(
+      new CustomEvent("sentio-player-state-changed", {
+        detail: {
+          playing: player.state.playing,
+          playlistId: player.state.currentPlaylist?.id,
+        },
+      }),
+    );
   });
 
   // Load initial track when player becomes ready
@@ -208,11 +258,22 @@ export default function PlayerApp(container: HTMLElement) {
 
   createEffect(() => {
     if (!playerReady() || stateRestored()) return;
-    console.log("[PlayerApp] First-time state restoration effect fired");
 
     const storedVolume = localStorage.getItem("sentio-player-volume");
     if (storedVolume) {
       player.setState("volume", parseInt(storedVolume));
+    }
+
+    const storedSongIndex = localStorage.getItem("sentio-player-song-index");
+    if (storedSongIndex) {
+      const index = parseInt(storedSongIndex);
+      if (
+        player.state.currentPlaylist &&
+        index >= 0 &&
+        index < player.state.currentPlaylist.songs.length
+      ) {
+        player.setState("currentSongIndex", index);
+      }
     }
 
     const storedPlaying = localStorage.getItem("sentio-player-playing");

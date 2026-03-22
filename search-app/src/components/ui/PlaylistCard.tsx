@@ -11,8 +11,10 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
   const [currentPlaylistId, setCurrentPlaylistId] = useState<string | null>(
     getCurrentPlaylistId(),
   );
+  const [isPlayerPlaying, setIsPlayerPlaying] = useState(false);
 
-  const isNowPlaying = currentPlaylistId === String(playlist.id);
+  const isNowPlaying =
+    currentPlaylistId === String(playlist.id) && isPlayerPlaying;
 
   const selectPlaylist = () => {
     window.dispatchEvent(
@@ -27,12 +29,29 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
       setCurrentPlaylistId(getCurrentPlaylistId());
     };
 
+    const handlePlayerStateChanged = (event: Event) => {
+      const detail = (event as CustomEvent).detail as {
+        playing: boolean;
+        playlistId: string | number;
+      };
+
+      setIsPlayerPlaying(detail.playing);
+    };
+
     window.addEventListener("sentio-playlist-selected", handlePlaylistSelected);
+    window.addEventListener(
+      "sentio-player-state-changed",
+      handlePlayerStateChanged,
+    );
 
     return () => {
       window.removeEventListener(
         "sentio-playlist-selected",
         handlePlaylistSelected,
+      );
+      window.removeEventListener(
+        "sentio-player-state-changed",
+        handlePlayerStateChanged,
       );
     };
   }, []);
@@ -49,6 +68,9 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
       onMouseLeave={() => setIsHovered(false)}
       onClick={selectPlaylist}
     >
+      {isNowPlaying && (
+        <div className="absolute inset-0 z-20 rounded-2xl ring-2 ring-emerald-400/50 pointer-events-none" />
+      )}
       <img
         src={playlist.image}
         alt={playlist.title}
@@ -78,6 +100,14 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
           {playlist.mood}
         </div>
       </div>
+      {isNowPlaying && (
+        <div className="absolute right-3 top-3 z-30 flex items-center gap-1 rounded-full bg-emerald-500/80 px-3 py-1 backdrop-blur">
+          <div className="h-2 w-2 rounded-full bg-emerald-100 animate-pulse" />
+          <span className="text-xs font-bold text-emerald-50 uppercase tracking-wider">
+            Playing
+          </span>
+        </div>
+      )}
     </button>
   );
 };
