@@ -36,6 +36,9 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
       };
 
       setIsPlayerPlaying(detail.playing);
+      if (detail.playlistId) {
+        setCurrentPlaylistId(String(detail.playlistId));
+      }
     };
 
     window.addEventListener("sentio-playlist-selected", handlePlaylistSelected);
