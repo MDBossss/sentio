@@ -4,13 +4,13 @@ import { PresetsSection } from "./PresetsSection";
 
 interface DescribeSectionProps {
   theme: "dark" | "light";
-  onGenerateTest?: () => void;
+  onGeneratePlaylist?: (prompt: string) => void;
   isGenerating?: boolean;
 }
 
 export const DescribeSection: React.FC<DescribeSectionProps> = ({
   theme,
-  onGenerateTest,
+  onGeneratePlaylist,
   isGenerating = false,
 }) => {
   const [prompt, setPrompt] = useState("");
@@ -18,6 +18,12 @@ export const DescribeSection: React.FC<DescribeSectionProps> = ({
   const handlePresetSelect = (description: string) => {
     console.log(`[DescribeSection] Preset selected: "${description}"`);
     setPrompt(description);
+  };
+
+  const handleGenerate = () => {
+    if (onGeneratePlaylist && prompt.trim()) {
+      onGeneratePlaylist(prompt);
+    }
   };
 
   return (
@@ -36,7 +42,7 @@ export const DescribeSection: React.FC<DescribeSectionProps> = ({
         <button
           type="button"
           disabled={prompt.length < 5 || isGenerating}
-          onClick={onGenerateTest}
+          onClick={handleGenerate}
           className={`inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-wider shadow-lg transition ${
             prompt.length < 5 || isGenerating
               ? "bg-muted/40 text-muted-foreground cursor-not-allowed opacity-50"

@@ -13,18 +13,14 @@ export async function generatePlaylist(
   res: Response,
 ): Promise<void> {
   try {
-    const { prompt, genres, userId } = req.body as PlaylistRequest & {
+    const { prompt, userId } = req.body as {
+      prompt: string;
       userId: string;
     };
 
     // Validation
     if (!prompt || typeof prompt !== "string" || prompt.trim().length === 0) {
       res.status(400).json({ error: "Valid prompt is required" });
-      return;
-    }
-
-    if (!Array.isArray(genres) || genres.length === 0) {
-      res.status(400).json({ error: "At least one genre is required" });
       return;
     }
 
@@ -43,13 +39,22 @@ export async function generatePlaylist(
       return;
     }
 
-    // Parse user preferences to extract familiarity
+    // Parse user preferences to extract genres and familiarity
+    let genres: string[] = ["Pop", "Rock", "Hip-Hop"]; // Default genres
     let familiarity: "mainstream" | "discovery" | "mixed" = "mixed";
+
     if (user.preferences) {
       try {
         const preferences = JSON.parse(user.preferences) as {
+          genres?: string[];
           familiarity?: string;
         };
+        if (
+          Array.isArray(preferences.genres) &&
+          preferences.genres.length > 0
+        ) {
+          genres = preferences.genres;
+        }
         if (
           preferences.familiarity === "mainstream" ||
           preferences.familiarity === "discovery" ||
@@ -58,11 +63,11 @@ export async function generatePlaylist(
           familiarity = preferences.familiarity;
         }
       } catch (e) {
-        console.warn("Failed to parse user preferences, using default:", e);
+        console.warn("Failed to parse user preferences, using defaults:", e);
       }
     }
 
-    // Call service to handle business logic
+    // Call service to handle business logic with genres from preferences
     const playlist = await createPlaylist(prompt, genres, userId, familiarity);
 
     res.status(201).json(playlist);

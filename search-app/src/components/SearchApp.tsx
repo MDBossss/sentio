@@ -2,7 +2,7 @@ import React from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useTheme } from "@/hooks/useTheme";
 import { usePlaylistsByUserId } from "@/hooks/usePlaylistsByUserId";
-import { useTestPlaylist } from "@/hooks/useTestPlaylist";
+import { useGeneratePlaylist } from "@/hooks/useGeneratePlaylist";
 import { Header } from "./sections/Header";
 import { DescribeSection } from "./sections/DescribeSection";
 import { PastPlaylistsSection } from "./sections/PastPlaylistsSection";
@@ -15,13 +15,14 @@ const SearchApp: React.FC = () => {
   const { data: playlists = [], isLoading: isLoadingPlaylists } =
     usePlaylistsByUserId(user?.id, isLoaded);
 
-  // Test playlist mutation
-  const { mutate: generateTestPlaylist, isPending: isGenerating } =
-    useTestPlaylist();
+  // Generate real playlist with OpenAI + YouTube
+  const { mutate: generatePlaylist, isPending: isGenerating } =
+    useGeneratePlaylist();
 
-  const handleGenerateTest = async () => {
-    if (user?.id) {
-      generateTestPlaylist(user.id);
+  const handleGeneratePlaylist = (prompt: string) => {
+    if (user?.id && prompt.trim()) {
+      // Backend will fetch user's genres from preferences
+      generatePlaylist({ prompt, genres: [], userId: user.id });
     }
   };
 
@@ -31,7 +32,7 @@ const SearchApp: React.FC = () => {
 
       <DescribeSection
         theme={theme}
-        onGenerateTest={handleGenerateTest}
+        onGeneratePlaylist={handleGeneratePlaylist}
         isGenerating={isGenerating}
       />
 
