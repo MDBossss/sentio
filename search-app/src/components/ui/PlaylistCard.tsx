@@ -14,9 +14,12 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
   );
   const [isPlayerPlaying, setIsPlayerPlaying] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [tilesLoaded, setTilesLoaded] = useState<boolean[]>([]);
 
   // Get first song thumbnail or use a placeholder gradient
   const thumbnailUrl = playlist.songs?.[0]?.thumbnail || null;
+  const tiles = playlist.songs?.slice(0, 4) || [];
+  const useGrid = tiles.length >= 4;
 
   const isNowPlaying =
     currentPlaylistId === String(playlist.id) && isPlayerPlaying;
@@ -108,6 +111,12 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
     (idStr.charCodeAt(0) + (idStr.length || 0)) % colorVariants.length;
   const gradient = colorVariants[gradientIndex];
 
+  useEffect(() => {
+    setTilesLoaded(new Array(tiles.length).fill(false));
+    // reset full image load state when playlist changes
+    setImageLoaded(false);
+  }, [playlist.id]);
+
   return (
     <button
       type="button"
@@ -124,28 +133,60 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
         <div className="absolute inset-0 z-20 rounded-2xl ring-2 ring-emerald-400/50 pointer-events-none" />
       )}
 
-      {/* Show thumbnail if available. Render the <img> so it can load and set `imageLoaded`. */}
-      {thumbnailUrl && (
-        <img
-          src={thumbnailUrl}
-          alt={playlist.title}
-          onLoad={() => setImageLoaded(true)}
-          onError={() => setImageLoaded(false)}
-          className={`h-full w-full object-cover transition ${
-            isHovered ? "scale-105" : "scale-100"
-          } ${imageLoaded ? "opacity-100" : "opacity-0"}`}
-        />
+      {/* If there are 4+ songs, show a 2x2 tile grid of thumbnails. Otherwise show single thumbnail. */}
+      {useGrid ? (
+        <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
+          {tiles.map((t, i) => (
+            <img
+              key={i}
+              src={t.thumbnail}
+              alt={`${playlist.title} - ${i + 1}`}
+              loading="lazy"
+              onLoad={() =>
+                setTilesLoaded((prev) => {
+                  const next = prev.slice();
+                  next[i] = true;
+                  return next;
+                })
+              }
+              onError={() =>
+                setTilesLoaded((prev) => {
+                  const next = prev.slice();
+                  next[i] = false;
+                  return next;
+                })
+              }
+              className={`w-full h-full object-cover transition ${
+                isHovered ? "scale-105" : "scale-100"
+              } ${tilesLoaded[i] ? "opacity-100" : "opacity-0"}`}
+            />
+          ))}
+        </div>
+      ) : (
+        thumbnailUrl && (
+          <img
+            src={thumbnailUrl}
+            alt={playlist.title}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageLoaded(false)}
+            className={`h-full w-full object-cover transition ${
+              isHovered ? "scale-105" : "scale-100"
+            } ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+          />
+        )
       )}
 
       {/* Fallback gradient background when no image */}
-      {(!thumbnailUrl || !imageLoaded) && (
+      {((!useGrid && (!thumbnailUrl || !imageLoaded)) ||
+        (useGrid && !tilesLoaded.some(Boolean))) && (
         <div
           className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-60`}
         />
       )}
 
       {/* Music icon on gradient background */}
-      {(!thumbnailUrl || !imageLoaded) && (
+      {((!useGrid && (!thumbnailUrl || !imageLoaded)) ||
+        (useGrid && !tilesLoaded.some(Boolean))) && (
         <div className="absolute inset-0 flex items-center justify-center">
           <Music size={48} className="text-white/40" />
         </div>
