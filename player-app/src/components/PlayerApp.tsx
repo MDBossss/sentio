@@ -31,6 +31,7 @@ export default function PlayerApp(container: HTMLElement) {
   const [playerReady, setPlayerReady] = createSignal(false);
   const [lastLoadedSongIndex, setLastLoadedSongIndex] = createSignal(-1);
   const [stateRestored, setStateRestored] = createSignal(false);
+  const [initialTrackLoaded, setInitialTrackLoaded] = createSignal(false);
 
   const ytPlayer = useYoutubePlayer("yt-player-container");
   let progressIntervalId: number;
@@ -41,6 +42,13 @@ export default function PlayerApp(container: HTMLElement) {
   const updateCurrentTrack = (autoPlay = true) => {
     const playlist = player.state.currentPlaylist;
     const index = player.state.currentSongIndex;
+
+    console.log("[updateCurrentTrack] Updating with autoPlay=" + autoPlay, {
+      playlistId: playlist?.id,
+      songIndex: index,
+      songTitle: playlist?.songs?.[index]?.title,
+      playlistSongsLength: playlist?.songs?.length,
+    });
 
     if (playlist && playlist.songs && playlist.songs[index]) {
       const song = playlist.songs[index];
@@ -147,8 +155,19 @@ export default function PlayerApp(container: HTMLElement) {
         startVideoId?: string;
       };
 
+      console.log("[PlayerApp] Received playlist-selected event:", {
+        playlistId: detail?.playlist?.id,
+        title: detail?.playlist?.title,
+        songsCount: detail?.playlist?.songs?.length,
+      });
+
       if (detail?.playlist) {
         const playlist = detail.playlist;
+        // If already playing, continue playing. If paused, start playing the new one.
+        const shouldAutoPlay = true; // Always play when clicking a playlist
+        console.log(
+          "[PlayerApp] Playlist clicked - auto-playing new selection",
+        );
         // Convert to plain object to avoid Solid.js store issues
         const plainPlaylist = JSON.parse(JSON.stringify(playlist));
         player.setPlaylist(
@@ -156,6 +175,8 @@ export default function PlayerApp(container: HTMLElement) {
           detail.startIndex,
           detail.startVideoId,
         );
+        // IMPORTANT: Reset lastLoadedSongIndex so video actually loads for new playlist
+        setLastLoadedSongIndex(-1);
 
         localStorage.setItem("sentio-current-playlist-id", String(playlist.id));
         localStorage.setItem(
@@ -164,11 +185,58 @@ export default function PlayerApp(container: HTMLElement) {
         );
 
         player.setState("playing", true);
-        updateCurrentTrack();
+        updateCurrentTrack(true);
+        console.log("[PlayerApp] Playlist switched and playback started");
+      } else {
+        console.warn(
+          "[PlayerApp] Received playlist-selected but no playlist in detail",
+        );
       }
     };
 
     window.addEventListener("sentio-playlist-selected", playlistHandler);
+
+    // Also listen to localStorage changes for cross-app communication
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === "sentio-playlist-to-switch" && event.newValue) {
+        try {
+          const { playlist } = JSON.parse(event.newValue);
+          console.log(
+            "[PlayerApp] Detected playlist switch via storage event:",
+            {
+              playlistId: playlist.id,
+              title: playlist.title,
+            },
+          );
+
+          // Simulate the playlist handler logic
+          if (playlist) {
+            const plainPlaylist = JSON.parse(JSON.stringify(playlist));
+            player.setPlaylist(plainPlaylist, 0);
+            // IMPORTANT: Reset lastLoadedSongIndex so video actually loads
+            setLastLoadedSongIndex(-1);
+            localStorage.setItem(
+              "sentio-current-playlist-id",
+              String(playlist.id),
+            );
+            localStorage.setItem(
+              "sentio-current-playlist",
+              JSON.stringify(playlist),
+            );
+            // Always auto-play when switching playlists via storage
+            player.setState("playing", true);
+            updateCurrentTrack(true);
+          }
+        } catch (e) {
+          console.error(
+            "[PlayerApp] Failed to handle storage playlist change:",
+            e,
+          );
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
 
     const togglePlayHandler = (event: Event) => {
       const detail = (event as CustomEvent).detail as {
@@ -217,6 +285,7 @@ export default function PlayerApp(container: HTMLElement) {
     onCleanup(() => {
       window.removeEventListener("sentio-theme-change", themeHandler);
       window.removeEventListener("sentio-playlist-selected", playlistHandler);
+      window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener(
         "sentio-player-toggle-play",
         togglePlayHandler,
@@ -247,8 +316,9 @@ export default function PlayerApp(container: HTMLElement) {
 
   // Load initial track when player becomes ready
   createEffect(() => {
-    if (!playerReady() || lastLoadedSongIndex() !== -1) return;
+    if (!playerReady() || initialTrackLoaded()) return;
     updateCurrentTrack(false);
+    setInitialTrackLoaded(true);
   });
 
   createEffect(() => {

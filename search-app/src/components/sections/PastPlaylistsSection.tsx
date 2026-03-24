@@ -1,32 +1,12 @@
 import React, { useRef } from "react";
 import { ChevronLeft, ChevronRight, Music } from "lucide-react";
-import { Playlist as PlaylistType } from "@/constants/playlists";
-import { PlaylistCard } from "../ui/PlaylistCard";
 import { Playlist as ApiPlaylist } from "@/api/playlists";
+import { PlaylistCard } from "../ui/PlaylistCard";
 
 interface PastPlaylistsSectionProps {
   playlists?: ApiPlaylist[];
   isLoading?: boolean;
 }
-
-// Transform API playlist to UI playlist format
-const transformPlaylist = (apiPlaylist: ApiPlaylist): PlaylistType => {
-  const thumbnailUrl =
-    apiPlaylist.songs && apiPlaylist.songs.length > 0
-      ? apiPlaylist.songs[0].thumbnail
-      : "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop";
-
-  return {
-    id: parseInt(apiPlaylist.id, 10) || Math.random(),
-    title: apiPlaylist.title,
-    mood: apiPlaylist.prompt.split(".")[0].substring(0, 50),
-    image: thumbnailUrl,
-    // Include full playlist data for event emission
-    songs: apiPlaylist.songs,
-    prompt: apiPlaylist.prompt,
-    createdAt: apiPlaylist.createdAt,
-  };
-};
 
 export const PastPlaylistsSection: React.FC<PastPlaylistsSectionProps> = ({
   playlists = [],
@@ -34,9 +14,8 @@ export const PastPlaylistsSection: React.FC<PastPlaylistsSectionProps> = ({
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Use fetched playlists if available, otherwise show empty state
-  const displayPlaylists =
-    playlists && playlists.length > 0 ? playlists.map(transformPlaylist) : [];
+  // Use fetched playlists if available
+  const displayPlaylists = playlists && playlists.length > 0 ? playlists : [];
 
   const scroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {

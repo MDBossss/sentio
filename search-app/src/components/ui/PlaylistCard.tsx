@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Playlist } from "@/constants/playlists";
+import { Playlist } from "@/api/playlists";
 import { getCurrentPlaylistId } from "@/lib/currentPlaylist";
+import { Music } from "lucide-react";
 
 interface PlaylistCardProps {
   playlist: Playlist;
@@ -12,21 +13,50 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
     getCurrentPlaylistId(),
   );
   const [isPlayerPlaying, setIsPlayerPlaying] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Get first song thumbnail or use a placeholder gradient
+  const thumbnailUrl = playlist.songs?.[0]?.thumbnail || null;
 
   const isNowPlaying =
     currentPlaylistId === String(playlist.id) && isPlayerPlaying;
 
   const selectPlaylist = () => {
-    window.dispatchEvent(
-      new CustomEvent("sentio-playlist-selected", {
-        detail: { playlist },
+    console.log("[PlaylistCard] Attempting to switch to playlist:", {
+      playlistId: playlist.id,
+      title: playlist.title,
+      songsCount: playlist.songs?.length,
+    });
+
+    // Save to localStorage so player app can detect change even in different contexts
+    localStorage.setItem(
+      "sentio-playlist-to-switch",
+      JSON.stringify({
+        playlist,
+        timestamp: Date.now(),
       }),
     );
+
+    // Also dispatch events
+    const event = new CustomEvent("sentio-playlist-selected", {
+      detail: { playlist },
+    });
+
+    console.log("[PlaylistCard] Dispatching event to window and parent");
+    window.dispatchEvent(event);
+    if (window.parent !== window) {
+      window.parent.dispatchEvent(event);
+    }
   };
 
   useEffect(() => {
     const handlePlaylistSelected = () => {
-      setCurrentPlaylistId(getCurrentPlaylistId());
+      const newId = getCurrentPlaylistId();
+      console.log(
+        "[PlaylistCard] Playlist selected event received, new ID:",
+        newId,
+      );
+      setCurrentPlaylistId(newId);
     };
 
     const handlePlayerStateChanged = (event: Event) => {
@@ -35,6 +65,11 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
         playlistId: string | number;
       };
 
+      console.log("[PlaylistCard] Player state changed:", {
+        playing: detail.playing,
+        playlistId: detail.playlistId,
+        currentPlaylistId: currentPlaylistId,
+      });
       setIsPlayerPlaying(detail.playing);
       if (detail.playlistId) {
         setCurrentPlaylistId(String(detail.playlistId));
@@ -59,6 +94,20 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
     };
   }, []);
 
+  // Generate a gradient based on playlist ID for visual variety
+  const colorVariants = [
+    "from-purple-500 to-pink-500",
+    "from-blue-500 to-cyan-500",
+    "from-green-500 to-emerald-500",
+    "from-yellow-500 to-orange-500",
+    "from-red-500 to-pink-500",
+    "from-indigo-500 to-purple-500",
+  ];
+  const gradientIndex =
+    (playlist.id.charCodeAt(0) + (playlist.id?.length || 0)) %
+    colorVariants.length;
+  const gradient = colorVariants[gradientIndex];
+
   return (
     <button
       type="button"
@@ -74,24 +123,53 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
       {isNowPlaying && (
         <div className="absolute inset-0 z-20 rounded-2xl ring-2 ring-emerald-400/50 pointer-events-none" />
       )}
-      <img
-        src={playlist.image}
-        alt={playlist.title}
-        className={`h-full w-full object-cover transition ${isHovered ? "scale-105" : "scale-100"}`}
-      />
+
+      {/* Show thumbnail if available */}
+      {thumbnailUrl && imageLoaded && (
+        <img
+          src={thumbnailUrl}
+          alt={playlist.title}
+          className={`h-full w-full object-cover transition ${
+            isHovered ? "scale-105" : "scale-100"
+          }`}
+        />
+      )}
+
+      {/* Fallback gradient background when no image */}
+      {(!thumbnailUrl || !imageLoaded) && (
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-60`}
+        />
+      )}
+
+      {/* Music icon on gradient background */}
+      {(!thumbnailUrl || !imageLoaded) && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Music size={48} className="text-white/40" />
+        </div>
+      )}
+
       <div
         className={`absolute inset-0 bg-gradient-to-t via-transparent to-transparent transition ${
           isNowPlaying ? "from-emerald-500/30" : "from-black/60"
         } ${isHovered ? "opacity-100" : "opacity-0"}`}
       />
       <div
-        className={`absolute inset-0 flex flex-col justify-end p-4 transition ${isHovered ? "opacity-100" : "opacity-0"}`}
+        className={`absolute inset-0 flex flex-col justify-end p-4 transition ${
+          isHovered ? "opacity-100" : "opacity-0"
+        }`}
       >
-        <h3 className="text-sm font-semibold text-white">{playlist.title}</h3>
-        <p className="text-xs text-emerald-300">{playlist.mood}</p>
+        <h3 className="line-clamp-2 text-sm font-semibold text-white">
+          {playlist.title}
+        </h3>
+        <p className="text-xs text-emerald-300">
+          {playlist.songs?.length || 0} songs
+        </p>
       </div>
       <div
-        className={`absolute inset-0 flex flex-col justify-end p-4 transition ${isHovered ? "opacity-0" : "opacity-100"}`}
+        className={`absolute inset-0 flex flex-col justify-end p-4 transition ${
+          isHovered ? "opacity-0" : "opacity-100"
+        }`}
       >
         <div
           className={`line-clamp-1 rounded-full px-2 py-1 text-xs font-medium backdrop-blur ${
@@ -100,7 +178,7 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
               : "bg-white/10 text-white"
           }`}
         >
-          {playlist.mood}
+          {playlist.songs?.length || 0} songs
         </div>
       </div>
       {isNowPlaying && (

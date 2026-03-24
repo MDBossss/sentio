@@ -3,5 +3,7 @@
  * @returns {string | null} The current playlist ID or null if none is playing
  */
 export function getCurrentPlaylistId(): string | null {
-  return localStorage.getItem("sentio-current-playlist-id");
+  const id = localStorage.getItem("sentio-current-playlist-id");
+  console.log("[getCurrentPlaylistId] Retrieved ID:", id);
+  return id;
 }

@@ -84,6 +84,16 @@ const selectPlaylist = () => {
     prompt: props.playlist.prompt,
     createdAt: props.playlist.createdAt,
   };
+
+  // Save to localStorage for cross-app communication
+  localStorage.setItem(
+    "sentio-playlist-to-switch",
+    JSON.stringify({
+      playlist: cleanPlaylist,
+      timestamp: Date.now(),
+    }),
+  );
+
   window.dispatchEvent(
     new CustomEvent("sentio-playlist-selected", {
       detail: { playlist: cleanPlaylist },
