@@ -103,9 +103,9 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
     "from-red-500 to-pink-500",
     "from-indigo-500 to-purple-500",
   ];
+  const idStr = String(playlist.id || "");
   const gradientIndex =
-    (playlist.id.charCodeAt(0) + (playlist.id?.length || 0)) %
-    colorVariants.length;
+    (idStr.charCodeAt(0) + (idStr.length || 0)) % colorVariants.length;
   const gradient = colorVariants[gradientIndex];
 
   return (
@@ -124,14 +124,16 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
         <div className="absolute inset-0 z-20 rounded-2xl ring-2 ring-emerald-400/50 pointer-events-none" />
       )}
 
-      {/* Show thumbnail if available */}
-      {thumbnailUrl && imageLoaded && (
+      {/* Show thumbnail if available. Render the <img> so it can load and set `imageLoaded`. */}
+      {thumbnailUrl && (
         <img
           src={thumbnailUrl}
           alt={playlist.title}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => setImageLoaded(false)}
           className={`h-full w-full object-cover transition ${
             isHovered ? "scale-105" : "scale-100"
-          }`}
+          } ${imageLoaded ? "opacity-100" : "opacity-0"}`}
         />
       )}
 
