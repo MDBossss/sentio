@@ -303,13 +303,21 @@ export default function PlayerApp(container: HTMLElement) {
       ytPlayer.pause();
     }
 
-    // Broadcast playing state to other apps
+    // Broadcast playing state to other apps (include a log for debugging)
+    const broadcastDetail = {
+      playing: player.state.playing,
+      playlistId: player.state.currentPlaylist?.id,
+    };
+    console.log("[PlayerApp] Broadcasting player state", {
+      timestamp: Date.now(),
+      playing: broadcastDetail.playing,
+      playlistId: broadcastDetail.playlistId,
+      currentPlaylistFromPlayerState: player.state.currentPlaylist?.id,
+    });
+
     window.dispatchEvent(
       new CustomEvent("sentio-player-state-changed", {
-        detail: {
-          playing: player.state.playing,
-          playlistId: player.state.currentPlaylist?.id,
-        },
+        detail: broadcastDetail,
       }),
     );
   });

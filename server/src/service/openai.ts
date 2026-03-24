@@ -9,7 +9,7 @@ export async function generatePlaylistSongs(
   prompt: string,
   genres: string[],
   familiarity: "mainstream" | "discovery" | "mixed" = "mixed",
-): Promise<Array<{ artist: string; title: string }>> {
+): Promise<OpenAISongResponse> {
   try {
     const genresList = genres.join(", ");
     const familiarityGuide = {
@@ -24,11 +24,11 @@ export async function generatePlaylistSongs(
         {
           role: "system",
           content:
-            'You are a music expert. Return ONLY a JSON array of objects with "songs" key containing array of objects with "artist" and "title" keys. No prose, only valid JSON.',
+            'You are a music expert. Return ONLY a JSON object with the following shape: { "title": "<playlist title>", "songs": [{ "artist": "...", "title": "..." }, ...] }. The "title" should be a short, catchy playlist title derived from the prompt (max 100 chars). Do NOT include any extra prose or commentary — return only valid JSON.',
         },
         {
           role: "user",
-          content: `Generate 10 songs based on this prompt: "${prompt}". Genres: ${genresList}. Music discovery preference: ${familiarityGuide[familiarity]}. Return only JSON.`,
+          content: `Generate 10 songs based on this prompt: "${prompt}". Genres: ${genresList}. Music discovery preference: ${familiarityGuide[familiarity]}. Return only JSON with a top-level title and a songs array.`,
         },
       ],
       response_format: { type: "json_object" },
@@ -40,7 +40,7 @@ export async function generatePlaylistSongs(
     }
 
     const parsed = JSON.parse(content) as OpenAISongResponse;
-    return parsed.songs;
+    return parsed;
   } catch (error) {
     console.error("Error generating playlist songs:", error);
     throw new Error(

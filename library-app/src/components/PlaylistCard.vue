@@ -171,13 +171,20 @@ const handlePlayButtonClick = () => {
   );
 };
 
-const handlePlaylistSelected = () => {
-  currentPlaylistId.value = getCurrentPlaylistId();
+const handlePlaylistSelected = (event) => {
+  const detail = event && event.detail ? event.detail : null;
+  const eventPlaylistId =
+    detail && detail.playlist ? String(detail.playlist.id) : null;
+  const newId = eventPlaylistId || getCurrentPlaylistId();
+  currentPlaylistId.value = newId;
 };
 
 const handlePlayerStateChanged = (event) => {
   const detail = event.detail;
   isPlayerPlaying.value = detail.playing;
+  if (detail.playlistId) {
+    currentPlaylistId.value = String(detail.playlistId);
+  }
 };
 
 onMounted(() => {

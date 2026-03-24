@@ -53,12 +53,22 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
   };
 
   useEffect(() => {
-    const handlePlaylistSelected = () => {
-      const newId = getCurrentPlaylistId();
-      console.log(
-        "[PlaylistCard] Playlist selected event received, new ID:",
-        newId,
-      );
+    const handlePlaylistSelected = (event: Event) => {
+      // Prefer the playlist id from the event detail to avoid localStorage race
+      const detail = (event as CustomEvent).detail as { playlist?: Playlist };
+      const eventPlaylistId = detail?.playlist
+        ? String(detail.playlist.id)
+        : null;
+      const newId = eventPlaylistId || getCurrentPlaylistId();
+
+      console.log("[PlaylistCard] Playlist selected event received", {
+        timestamp: Date.now(),
+        playlistCardId: String(playlist.id),
+        eventPlaylistId,
+        fallback_localStorage: getCurrentPlaylistId(),
+        chosenNewId: newId,
+      });
+
       setCurrentPlaylistId(newId);
     };
 
@@ -68,15 +78,25 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
         playlistId: string | number;
       };
 
-      console.log("[PlaylistCard] Player state changed:", {
-        playing: detail.playing,
-        playlistId: detail.playlistId,
-        currentPlaylistId: currentPlaylistId,
+      // Read authoritative current playlist id from localStorage at handler time
+      const authoritativeId = getCurrentPlaylistId();
+
+      console.log("[PlaylistCard] Player state changed", {
+        timestamp: Date.now(),
+        eventPlaylistId: detail.playlistId,
+        eventPlaying: detail.playing,
+        componentPlaylistId: String(playlist.id),
+        componentState_currentPlaylistId: currentPlaylistId,
+        authoritative_localStorage_playlistId: authoritativeId,
+        willBecomeNowPlaying:
+          String(detail.playlistId) === String(playlist.id) && detail.playing,
       });
-      setIsPlayerPlaying(detail.playing);
+
+      // Update local component state
       if (detail.playlistId) {
         setCurrentPlaylistId(String(detail.playlistId));
       }
+      setIsPlayerPlaying(detail.playing);
     };
 
     window.addEventListener("sentio-playlist-selected", handlePlaylistSelected);

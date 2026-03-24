@@ -15,7 +15,9 @@ export async function createPlaylist(
   console.log(
     `Generating songs for prompt: "${prompt}" with genres: ${genres.join(", ")} and familiarity: ${familiarity}`,
   );
-  const songsList = await generatePlaylistSongs(prompt, genres, familiarity);
+  const aiResult = await generatePlaylistSongs(prompt, genres, familiarity);
+
+  const songsList = aiResult.songs || [];
 
   if (songsList.length === 0) {
     throw new Error("Failed to generate songs from OpenAI");
@@ -32,8 +34,12 @@ export async function createPlaylist(
     throw new Error("Failed to enrich songs with YouTube data");
   }
 
-  // Generate title from prompt (take first part or use default)
-  const title = prompt.split(".")[0].substring(0, 100) || "New Playlist";
+  // Prefer title returned by AI; otherwise fall back to the prompt-derived title
+  const aiTitle = aiResult.title?.trim();
+  const title =
+    (aiTitle && aiTitle.substring(0, 100)) ||
+    prompt.split(".")[0].substring(0, 100) ||
+    "New Playlist";
 
   // Save to database
   const playlist = await prisma.playlist.create({

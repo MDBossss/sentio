@@ -4,6 +4,9 @@
  */
 export function getCurrentPlaylistId(): string | null {
   const id = localStorage.getItem("sentio-current-playlist-id");
-  console.log("[getCurrentPlaylistId] Retrieved ID:", id);
+  console.log("[getCurrentPlaylistId] Retrieved ID:", {
+    timestamp: Date.now(),
+    id,
+  });
   return id;
 }
