@@ -9,6 +9,8 @@ const {
 // Load environment variables from .env file
 dotenv.config();
 
+console.log("Loaded env vars:", Object.keys(process.env).filter(k => k.startsWith("REACT_APP_")));
+
 const isProduction = process.env.NODE_ENV === "production";
 const publicPath = process.env.PUBLIC_PATH || "http://localhost:3001/";
 
@@ -19,6 +21,8 @@ Object.keys(process.env).forEach((key) => {
     envVars[`process.env.${key}`] = JSON.stringify(process.env[key]);
   }
 });
+
+console.log("envVars for DefinePlugin:", JSON.stringify(envVars, null, 2));
 
 module.exports = {
   mode: isProduction ? "production" : "development",
