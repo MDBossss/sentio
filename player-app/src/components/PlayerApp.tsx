@@ -124,6 +124,26 @@ export default function PlayerApp(container: HTMLElement) {
     const initialTheme = storedTheme === "light" ? "light" : "dark";
     player.setState("theme", initialTheme);
 
+    const isStandalone = window.parent === window;
+
+    if (isStandalone) {
+      const mockPlaylist = {
+        id: "mock-1",
+        title: "Demo Playlist",
+        songs: [
+          {
+            title: "Demo Song",
+            artist: "Demo Artist",
+            videoId: "dQw4w9WgXcQ",
+            thumbnail: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=320&q=80",
+          },
+        ],
+      };
+      player.setPlaylist(mockPlaylist, 0);
+      localStorage.setItem("sentio-current-playlist", JSON.stringify(mockPlaylist));
+      return;
+    }
+
     const storedPlaylist = localStorage.getItem("sentio-current-playlist");
     if (storedPlaylist) {
       try {
