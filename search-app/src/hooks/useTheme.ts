@@ -13,6 +13,10 @@ export const useTheme = () => {
   }, []);
 
   useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
+
+  useEffect(() => {
     const handler = (event: Event) => {
       const detail = (event as CustomEvent).detail as {
         theme?: Theme;
