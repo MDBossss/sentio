@@ -26,7 +26,7 @@ export const LandingPage = () => {
         {/* Top Badge */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 text-xs font-medium mb-8 animate-fade-in">
           <Sparkles size={12} />
-          <span>Now powered by GPT-4o Audio</span>
+          <span>Now with AI mood→playlist generation & YouTube playback</span>
         </div>
 
         {/* Headline */}
@@ -39,7 +39,7 @@ export const LandingPage = () => {
         <p className="max-w-2xl text-lg md:text-xl text-zinc-400 mb-10 leading-relaxed">
           From the Latin <span className="italic text-zinc-200">sentīre</span>:
           to perceive, to feel, to experience. Sentio transforms your current
-          emotional state into a perfectly curated Spotify journey.
+          emotional state into a personalized listening journey powered by AI.
         </p>
 
         {/* CTA Area */}
@@ -51,18 +51,18 @@ export const LandingPage = () => {
         <div className="mt-32 w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-6">
           <FeatureCard
             icon={<BrainCircuit className="text-emerald-500" />}
-            title="Emotional Intelligence"
-            desc="AI that understands nuance, not just 'happy' or 'sad'."
+            title="Mood-Based Playlists"
+            desc="Describe how you feel and Sentio generates a tailored playlist instantly."
           />
           <FeatureCard
             icon={<Music className="text-emerald-500" />}
-            title="Spotify Native"
-            desc="Seamlessly syncs to your library and creates playlists in seconds."
+            title="YouTube Player"
+            desc="In-app playback with full controls: play, pause, skip, volume and progress."
           />
           <FeatureCard
             icon={<Sparkles className="text-emerald-500" />}
-            title="Latin Roots"
-            desc="Built on the philosophy of deep sensory perception."
+            title="Personal Library"
+            desc="Save, organize and sync generated playlists across your account."
           />
         </div>
       </main>
