@@ -29,6 +29,18 @@ const App = () => {
       );
     };
 
+    // Check for shared playlist in URL and pass to child
+    const sharedParams = new URLSearchParams(window.location.search);
+    const sharedId = sharedParams.get("shared");
+    if (sharedId) {
+      console.log("[Shell] Shared playlist detected:", sharedId);
+      localStorage.setItem("sentio-pending-shared-playlist", sharedId);
+      // Clean URL
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("shared");
+      window.history.replaceState({}, "", cleanUrl.toString());
+    }
+
     const getInitialTheme = () => {
       const stored = localStorage.getItem("sentio-theme");
       if (stored === "light" || stored === "dark") {

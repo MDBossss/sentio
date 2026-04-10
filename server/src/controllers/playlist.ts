@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import { createPlaylist, getPlaylistsByUserId } from "../service/playlist";
+import { createPlaylist, getPlaylistsByUserId, getPlaylistById, addSharedPlaylist, getSharedPlaylistsByUserId } from "../service/playlist";
 import { getPresetsForUser } from "../service/presets";
 import { enrichSongsWithYouTube } from "../service/youtube";
 import { mockSongs } from "../mocks/songs";
@@ -199,6 +199,79 @@ export async function getPresets(req: Request, res: Response): Promise<void> {
     res.status(200).json({ presets });
   } catch (error) {
     console.error("Error in getPresets controller:", error);
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+    res.status(500).json({ error: message });
+  }
+}
+
+export async function getSharedPlaylist(req: Request, res: Response): Promise<void> {
+  try {
+    const { playlistId } = req.params as { playlistId: string };
+
+    if (!playlistId || typeof playlistId !== "string" || playlistId.trim().length === 0) {
+      res.status(400).json({ error: "Valid playlistId is required" });
+      return;
+    }
+
+    const playlist = await getPlaylistById(playlistId);
+
+    if (!playlist) {
+      res.status(404).json({ error: "Playlist not found" });
+      return;
+    }
+
+    res.status(200).json(playlist);
+  } catch (error) {
+    console.error("Error in getSharedPlaylist controller:", error);
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+    res.status(500).json({ error: message });
+  }
+}
+
+export async function addShared(req: Request, res: Response): Promise<void> {
+  try {
+    const { playlistId, userId } = req.body as {
+      playlistId: string;
+      userId: string;
+    };
+
+    if (!playlistId || typeof playlistId !== "string" || playlistId.trim().length === 0) {
+      res.status(400).json({ error: "Valid playlistId is required" });
+      return;
+    }
+
+    if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
+      res.status(400).json({ error: "Valid userId is required" });
+      return;
+    }
+
+    const sharedPlaylist = await addSharedPlaylist(playlistId, userId);
+
+    res.status(201).json(sharedPlaylist);
+  } catch (error) {
+    console.error("Error in addShared controller:", error);
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+    res.status(500).json({ error: message });
+  }
+}
+
+export async function getUserSharedPlaylists(req: Request, res: Response): Promise<void> {
+  try {
+    const { userId } = req.params as { userId: string };
+
+    if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
+      res.status(400).json({ error: "Valid userId is required" });
+      return;
+    }
+
+    const sharedPlaylists = await getSharedPlaylistsByUserId(userId);
+
+    res.status(200).json(sharedPlaylists);
+  } catch (error) {
+    console.error("Error in getUserSharedPlaylists controller:", error);
     const message =
       error instanceof Error ? error.message : "Internal server error";
     res.status(500).json({ error: message });

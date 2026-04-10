@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Playlist } from "@/api/playlists";
 import { getCurrentPlaylistId } from "@/lib/currentPlaylist";
-import { Music } from "lucide-react";
+import { Music, Share2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface PlaylistCardProps {
   playlist: Playlist;
@@ -15,6 +16,26 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
   const [isPlayerPlaying, setIsPlayerPlaying] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [tilesLoaded, setTilesLoaded] = useState<boolean[]>([]);
+  const { toast } = useToast();
+
+  const baseUrl = process.env.REACT_APP_BASE_URL || "https://sentio.app";
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareUrl = `${baseUrl}/app?shared=${playlist.id}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast({
+        description: "Share link copied to clipboard",
+      });
+    } catch (err) {
+      console.error("Failed to copy share link:", err);
+      toast({
+        description: "Failed to copy link",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Get first song thumbnail or use a placeholder gradient
   const thumbnailUrl = playlist.songs?.[0]?.thumbnail || null;
@@ -257,6 +278,16 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
             Playing
           </span>
         </div>
+      )}
+
+      {isHovered && !isNowPlaying && (
+        <button
+          onClick={handleShare}
+          className="absolute right-2 top-2 z-30 rounded-full bg-black/50 p-2 backdrop-blur transition hover:bg-black/70"
+          aria-label="Share playlist"
+        >
+          <Share2 size={16} className="text-white" />
+        </button>
       )}
     </button>
   );
