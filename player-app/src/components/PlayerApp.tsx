@@ -11,6 +11,7 @@ import {
 import { useYoutubePlayer } from "../hooks/useYoutubePlayer";
 import { usePlayerState } from "../hooks/usePlayerState";
 import { formatTime } from "../utils/formatTime";
+import { decodeHtml } from "../utils/decodeHtml";
 
 interface PlaylistSong {
   title: string;
@@ -46,14 +47,13 @@ export default function PlayerApp(container: HTMLElement) {
     console.log("[updateCurrentTrack] Updating with autoPlay=" + autoPlay, {
       playlistId: playlist?.id,
       songIndex: index,
-      songTitle: playlist?.songs?.[index]?.title,
       playlistSongsLength: playlist?.songs?.length,
     });
 
     if (playlist && playlist.songs && playlist.songs[index]) {
       const song = playlist.songs[index];
-      player.setState("currentTrack", song.title);
-      player.setState("currentArtist", song.artist);
+      player.setState("currentTrack", decodeHtml(song.title));
+      player.setState("currentArtist", decodeHtml(song.artist));
 
       if (
         song.videoId &&
@@ -225,7 +225,7 @@ export default function PlayerApp(container: HTMLElement) {
             "[PlayerApp] Detected playlist switch via storage event:",
             {
               playlistId: playlist.id,
-              title: playlist.title,
+              title: decodeHtml(playlist.title),
             },
           );
 
