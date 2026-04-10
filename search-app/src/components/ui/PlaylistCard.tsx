@@ -33,13 +33,15 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
 
     // Save to localStorage so player app can detect change even in different contexts
     localStorage.setItem("sentio-current-playlist-id", String(playlist.id));
+    const userId = localStorage.getItem("sentio-user-id");
     localStorage.setItem(
       "sentio-playlist-to-switch",
       JSON.stringify({
-        playlist,
+        playlist: { ...playlist, userId },
         timestamp: Date.now(),
       }),
     );
+    localStorage.setItem("sentio-current-user-id", userId || "");
 
     // Also dispatch events
     const event = new CustomEvent("sentio-playlist-selected", {

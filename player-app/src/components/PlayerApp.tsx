@@ -124,10 +124,20 @@ export default function PlayerApp(container: HTMLElement) {
     const initialTheme = storedTheme === "light" ? "light" : "dark";
     player.setState("theme", initialTheme);
 
+    const storedPlaylist = localStorage.getItem("sentio-current-playlist");
+    const storedUserId = localStorage.getItem("sentio-current-user-id");
+    const currentUserId = localStorage.getItem("sentio-user-id");
+
     const isStandalone = window.parent === window;
 
-    if (isStandalone) {
-      console.log("[PlayerApp] Running standalone mode");
+    const storedPlaylistObj = storedPlaylist ? JSON.parse(storedPlaylist) : null;
+    const playlistUserId = storedPlaylistObj?.userId;
+
+    const userIdMatches =
+      !playlistUserId || playlistUserId === currentUserId || !currentUserId;
+
+    if (isStandalone && !storedPlaylistObj || !userIdMatches) {
+      console.log("[PlayerApp] Running standalone mode with no stored playlist");
       const mockPlaylist = {
         id: "mock-1",
         title: "Demo Playlist",
@@ -142,12 +152,12 @@ export default function PlayerApp(container: HTMLElement) {
       };
       player.setPlaylist(mockPlaylist, 0);
       localStorage.setItem("sentio-current-playlist", JSON.stringify(mockPlaylist));
+    } else if (isStandalone && storedPlaylistObj) {
+      console.log("[PlayerApp] Running standalone mode with stored playlist");
     }
-
-    const storedPlaylist = localStorage.getItem("sentio-current-playlist");
-    if (storedPlaylist) {
+    if (storedPlaylistObj && userIdMatches) {
       try {
-        const playlist = JSON.parse(storedPlaylist);
+        const playlist = storedPlaylistObj;
         player.setPlaylist(playlist, 0);
       } catch (e) {
         console.error(
@@ -199,10 +209,13 @@ export default function PlayerApp(container: HTMLElement) {
         setLastLoadedSongIndex(-1);
 
         localStorage.setItem("sentio-current-playlist-id", String(playlist.id));
+        const currentUserId = localStorage.getItem("sentio-user-id");
+        const playlistWithUser = { ...playlist, userId: currentUserId };
         localStorage.setItem(
           "sentio-current-playlist",
-          JSON.stringify(playlist),
+          JSON.stringify(playlistWithUser),
         );
+        localStorage.setItem("sentio-current-user-id", currentUserId || "");
 
         player.setState("playing", true);
         updateCurrentTrack(true);
@@ -239,10 +252,13 @@ export default function PlayerApp(container: HTMLElement) {
               "sentio-current-playlist-id",
               String(playlist.id),
             );
+            const currentUserId = localStorage.getItem("sentio-user-id");
+            const playlistWithUser = { ...playlist, userId: currentUserId };
             localStorage.setItem(
               "sentio-current-playlist",
-              JSON.stringify(playlist),
+              JSON.stringify(playlistWithUser),
             );
+            localStorage.setItem("sentio-current-user-id", currentUserId || "");
             // Always auto-play when switching playlists via storage
             player.setState("playing", true);
             updateCurrentTrack(true);

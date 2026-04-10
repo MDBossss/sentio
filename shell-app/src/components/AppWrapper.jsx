@@ -42,10 +42,11 @@ export const AppWrapper = ({ children }) => {
         const user = generateUser(session.user);
         console.log("[AppWrapper] Generated user data:", user);
 
-        // Store userId on window for micro-frontends to access
+        // Store userId on window and localStorage for micro-frontends to access
         window.sentioUserId = user.id;
+        localStorage.setItem("sentio-user-id", user.id);
         console.log(
-          "[AppWrapper] User ID stored on window.sentioUserId:",
+          "[AppWrapper] User ID stored on window.sentioUserId and localStorage:",
           user.id,
         );
 

@@ -140,13 +140,15 @@ const selectPlaylist = () => {
 
   // Save to localStorage for cross-app communication
   localStorage.setItem("sentio-current-playlist-id", String(props.playlist.id));
+  const userId = localStorage.getItem("sentio-user-id");
   localStorage.setItem(
     "sentio-playlist-to-switch",
     JSON.stringify({
-      playlist: cleanPlaylist,
+      playlist: { ...cleanPlaylist, userId },
       timestamp: Date.now(),
     }),
   );
+  localStorage.setItem("sentio-current-user-id", userId || "");
 
   window.dispatchEvent(
     new CustomEvent("sentio-playlist-selected", {
