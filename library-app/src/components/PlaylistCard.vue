@@ -139,6 +139,7 @@ const selectPlaylist = () => {
   };
 
   // Save to localStorage for cross-app communication
+  localStorage.setItem("sentio-current-playlist-id", String(props.playlist.id));
   localStorage.setItem(
     "sentio-playlist-to-switch",
     JSON.stringify({
@@ -152,6 +153,13 @@ const selectPlaylist = () => {
       detail: { playlist: cleanPlaylist },
     }),
   );
+  if (window.parent !== window) {
+    window.parent.dispatchEvent(
+      new CustomEvent("sentio-playlist-selected", {
+        detail: { playlist: cleanPlaylist },
+      }),
+    );
+  }
 };
 
 const handlePlayButtonClick = () => {
@@ -169,6 +177,13 @@ const handlePlayButtonClick = () => {
       detail: { playlistId: props.playlist.id },
     }),
   );
+  if (window.parent !== window) {
+    window.parent.dispatchEvent(
+      new CustomEvent("sentio-player-toggle-play", {
+        detail: { playlistId: props.playlist.id },
+      }),
+    );
+  }
 };
 
 const handlePlaylistSelected = (event) => {
@@ -176,6 +191,9 @@ const handlePlaylistSelected = (event) => {
   const eventPlaylistId =
     detail && detail.playlist ? String(detail.playlist.id) : null;
   const newId = eventPlaylistId || getCurrentPlaylistId();
+  if (newId) {
+    localStorage.setItem("sentio-current-playlist-id", newId);
+  }
   currentPlaylistId.value = newId;
 };
 

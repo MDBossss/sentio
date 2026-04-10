@@ -32,6 +32,7 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
     });
 
     // Save to localStorage so player app can detect change even in different contexts
+    localStorage.setItem("sentio-current-playlist-id", String(playlist.id));
     localStorage.setItem(
       "sentio-playlist-to-switch",
       JSON.stringify({
@@ -69,6 +70,9 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
         chosenNewId: newId,
       });
 
+      if (newId) {
+        localStorage.setItem("sentio-current-playlist-id", newId);
+      }
       setCurrentPlaylistId(newId);
     };
 

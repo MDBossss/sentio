@@ -127,6 +127,7 @@ export default function PlayerApp(container: HTMLElement) {
     const isStandalone = window.parent === window;
 
     if (isStandalone) {
+      console.log("[PlayerApp] Running standalone mode");
       const mockPlaylist = {
         id: "mock-1",
         title: "Demo Playlist",
@@ -141,7 +142,6 @@ export default function PlayerApp(container: HTMLElement) {
       };
       player.setPlaylist(mockPlaylist, 0);
       localStorage.setItem("sentio-current-playlist", JSON.stringify(mockPlaylist));
-      return;
     }
 
     const storedPlaylist = localStorage.getItem("sentio-current-playlist");
