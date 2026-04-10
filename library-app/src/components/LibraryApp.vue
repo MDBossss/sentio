@@ -17,7 +17,8 @@ const mockPlaylists = [
     id: "1",
     title: "Late Night Vibes",
     producers: "Chill beats for midnight sessions",
-    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=320&q=80",
+    image:
+      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=320&q=80",
     songs: [],
     prompt: "Late night vibes for working.",
     createdAt: new Date().toISOString(),
@@ -26,7 +27,8 @@ const mockPlaylists = [
     id: "2",
     title: "Morning Coffee",
     producers: "Acoustic and soft tunes",
-    image: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=320&q=80",
+    image:
+      "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=320&q=80",
     songs: [],
     prompt: "Morning coffee playlist.",
     createdAt: new Date().toISOString(),
@@ -35,7 +37,8 @@ const mockPlaylists = [
     id: "3",
     title: "Workout Energy",
     producers: "High tempo workout tracks",
-    image: "https://images.unsplash.com/photo-1504680177321-2e6a879aac86?auto=format&fit=crop&w=320&q=80",
+    image:
+      "https://images.unsplash.com/photo-1504680177321-2e6a879aac86?auto=format&fit=crop&w=320&q=80",
     songs: [],
     prompt: "Workout energy playlist.",
     createdAt: new Date().toISOString(),
@@ -72,35 +75,41 @@ const fetchPlaylists = async (userId) => {
 
 // Fetch playlists on mount
 onMounted(async () => {
+  // Prefer a logged-in user when available. Only show demo playlists
+  // when there's no userId and the app is running standalone.
+  const userId = window.sentioUserId || localStorage.getItem("sentio-user-id");
+
+  if (userId) {
+    await fetchPlaylists(userId);
+
+    // Listen for playlist creation events from search-app
+    const handlePlaylistCreated = (event) => {
+      console.log(
+        "[LibraryApp] Playlist created event received, refetching...",
+      );
+      fetchPlaylists(userId);
+    };
+
+    window.addEventListener("sentio-playlist-created", handlePlaylistCreated);
+
+    onUnmounted(() => {
+      window.removeEventListener(
+        "sentio-playlist-created",
+        handlePlaylistCreated,
+      );
+    });
+
+    return;
+  }
+
+  // No userId — only show mock playlists when the app runs standalone
   const isStandalone = window.parent === window;
-  
   if (isStandalone) {
     playlists.value = mockPlaylists;
-    return;
-  }
-
-  const userId = window.sentioUserId || localStorage.getItem('sentio-user-id');
-
-  if (!userId) {
-    console.warn("[LibraryApp] No userId found on window.sentioUserId or localStorage");
-    return;
-  }
-
-  await fetchPlaylists(userId);
-
-  // Listen for playlist creation events from search-app
-  const handlePlaylistCreated = (event) => {
-    console.log("[LibraryApp] Playlist created event received, refetching...");
-    fetchPlaylists(userId);
-  };
-
-  window.addEventListener("sentio-playlist-created", handlePlaylistCreated);
-
-  onUnmounted(() => {
-    window.removeEventListener(
-      "sentio-playlist-created",
-      handlePlaylistCreated,
+  } else {
+    console.warn(
+      "[LibraryApp] No userId found on window.sentioUserId or localStorage",
     );
-  });
+  }
 });
 </script>
