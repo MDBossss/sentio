@@ -1,5 +1,5 @@
 import React from "react";
-import { Sun, Moon, LogOut } from "lucide-react";
+import { Sun, Moon, LogOut, Settings } from "lucide-react";
 import { useSession, useClerk } from "@clerk/clerk-react";
 import {
   DropdownMenu,
@@ -73,6 +73,14 @@ export const Header: React.FC<HeaderProps> = ({ theme, onThemeChange }) => {
                 </span>
               </>
             )}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="my-2 bg-border/40" />
+          <DropdownMenuItem
+            onClick={() => (window.location.href = "/settings")}
+            className="gap-2 rounded-xl focus:bg-white/10 hover:bg-white/10 cursor-pointer"
+          >
+            <Settings size={14} className="text-emerald-400" />
+            <span className="text-popover-foreground">Settings</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator className="my-2 bg-border/40" />
           <DropdownMenuItem

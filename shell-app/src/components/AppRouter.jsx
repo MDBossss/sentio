@@ -8,6 +8,7 @@ import {
 import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import { LandingPage } from "../pages/LandingPage";
 import { PreferencesPage } from "../pages/PreferencesPage";
+import { SettingsPage } from "../pages/SettingsPage";
 import { PreferencesGuard } from "./PreferencesGuard";
 
 /**
@@ -59,6 +60,21 @@ export const AppRouter = () => {
               </SignedOut>
               <SignedIn>
                 <PreferencesGuard />
+              </SignedIn>
+            </>
+          }
+        />
+
+        {/* Settings page for editing preferences */}
+        <Route
+          path="/settings"
+          element={
+            <>
+              <SignedOut>
+                <Navigate to="/" replace />
+              </SignedOut>
+              <SignedIn>
+                <SettingsPage />
               </SignedIn>
             </>
           }
