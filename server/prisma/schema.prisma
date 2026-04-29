@@ -11,14 +11,15 @@ datasource db {
 }
 
 model User {
-  id            String     @id           // Clerk ID
-  firstName     String
-  lastName      String
-  email         String     @unique
-  imageUrl      String?
+  id             String     @id           // Clerk ID
+  firstName      String
+  lastName       String
+  email          String     @unique
+  imageUrl       String?
   preferences   String?    // JSON string: { "familiarity": "mainstream|discovery|mixed", "genres": ["Pop", "Rock"] }
-  createdAt     DateTime   @default(now())
-  playlists     Playlist[]
+  createdAt      DateTime   @default(now())
+  playlists      Playlist[]
+  sharedPlaylists SharedPlaylist[]
 }
 
 model Song {
@@ -32,6 +33,17 @@ model Song {
   playlistId String
 }
 
+model SharedSong {
+  id        String   @id @default(cuid())
+  title     String
+  artist    String
+  videoId   String
+  thumbnail String?
+  
+  sharedPlaylist   SharedPlaylist @relation(fields: [sharedPlaylistId], references: [id], onDelete: Cascade)
+  sharedPlaylistId String
+}
+
 model Playlist {
   id        String   @id @default(cuid())
   prompt    String
@@ -43,4 +55,20 @@ model Playlist {
   
   @@index([createdAt])
   @@index([userId])
+}
+
+model SharedPlaylist {
+  id                String   @id @default(cuid())
+  prompt            String
+  title             String
+  songs             SharedSong[]
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalCreatorId String
+  originalPlaylistId String
+  sharedByName      String?
+  sharedAt          DateTime @default(now())
+  
+  @@index([userId])
+  @@index([originalPlaylistId])
 }

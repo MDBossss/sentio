@@ -13,7 +13,6 @@ import SearchApp from "../components/SearchApp";
 const THEME_STORAGE_KEY = "sentio-theme";
 const clerkPubKey = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY || "";
 
-// Create a client for React Query
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

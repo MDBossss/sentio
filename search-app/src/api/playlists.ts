@@ -114,3 +114,50 @@ export async function testYouTubeEnrichment(userId: string): Promise<Playlist> {
     throw error;
   }
 }
+
+export async function getSharedPlaylistsByUserId(
+  userId: string,
+): Promise<Playlist[]> {
+  try {
+    console.log(`[API] Fetching shared playlists for user: ${userId}`);
+
+    const response = await axios.get<Playlist[]>(
+      `${API_BASE_URL}/api/shared/${userId}`,
+    );
+    console.log(`[API] Shared playlists fetched:`, response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      `[API] Error fetching shared playlists:`,
+      error instanceof Error ? error.message : "Unknown error",
+    );
+    return [];
+  }
+}
+
+export async function addSharedPlaylist(
+  playlistId: string,
+  userId: string,
+): Promise<Playlist> {
+  try {
+    console.log(
+      `[API] Adding shared playlist: ${playlistId} for user: ${userId}`,
+    );
+
+    const response = await axios.post<Playlist>(`${API_BASE_URL}/api/playlists/shared`, {
+      playlistId,
+      userId,
+    });
+
+    console.log(`[API] Shared playlist added:`, response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      `[API] Error adding shared playlist:`,
+      error instanceof Error ? error.message : "Unknown error",
+    );
+    throw error;
+  }
+}

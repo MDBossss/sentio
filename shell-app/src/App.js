@@ -29,6 +29,18 @@ const App = () => {
       );
     };
 
+    // Check for shared playlist in URL and pass to child
+    const sharedParams = new URLSearchParams(window.location.search);
+    const sharedId = sharedParams.get("shared");
+    if (sharedId) {
+      console.log("[Shell] Shared playlist detected:", sharedId);
+      localStorage.setItem("sentio-pending-shared-playlist", sharedId);
+      // Clean URL
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("shared");
+      window.history.replaceState({}, "", cleanUrl.toString());
+    }
+
     const getInitialTheme = () => {
       const stored = localStorage.getItem("sentio-theme");
       if (stored === "light" || stored === "dark") {
@@ -121,11 +133,11 @@ const App = () => {
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <div className="flex flex-1 gap-6 p-6">
         <aside className="shrink-0">
-          <div id={libraryContainerId} className="h-full overflow-hidden" />
+          <div id={libraryContainerId} className="h-[calc(100vh-180px)] overflow-hidden" />
         </aside>
 
-        <main className="flex-1">
-          <div id={searchContainerId} className="h-full overflow-hidden" />
+        <main className="flex-1 flex flex-col min-h-0">
+          <div id={searchContainerId} className="h-[calc(100vh-180px)] overflow-y-auto scrollbar-hide" />
         </main>
       </div>
 

@@ -1,7 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { generatePlaylistSongs } from "./openai";
 import { enrichSongsWithYouTube } from "./youtube";
-import { PlaylistResponse } from "../types";
+import { PlaylistResponse, SharedPlaylistResponse } from "../types";
 
 const prisma = new PrismaClient();
 
@@ -103,5 +103,143 @@ export async function getPlaylistsByUserId(
       thumbnail: song.thumbnail || "",
     })),
     createdAt: playlist.createdAt.toISOString(),
+  }));
+}
+
+export async function getPlaylistById(playlistId: string): Promise<PlaylistResponse | null> {
+  const playlist = await prisma.playlist.findUnique({
+    where: { id: playlistId },
+    include: {
+      songs: true,
+    },
+  });
+
+  if (!playlist) return null;
+
+  return {
+    id: playlist.id,
+    prompt: playlist.prompt,
+    title: playlist.title,
+    songs: playlist.songs.map((song) => ({
+      title: song.title,
+      artist: song.artist,
+      videoId: song.videoId,
+      thumbnail: song.thumbnail || "",
+    })),
+    createdAt: playlist.createdAt.toISOString(),
+  };
+}
+
+export async function addSharedPlaylist(
+  playlistId: string,
+  recipientUserId: string,
+): Promise<SharedPlaylistResponse> {
+  const originalPlaylist = await prisma.playlist.findUnique({
+    where: { id: playlistId },
+    include: {
+      songs: true,
+      user: true,
+    },
+  });
+
+  if (!originalPlaylist) {
+    throw new Error("Playlist not found");
+  }
+
+  const creatorUser = await prisma.user.findUnique({
+    where: { id: originalPlaylist.userId },
+  });
+
+  if (!creatorUser) {
+    throw new Error("Creator user not found");
+  }
+
+  const sharedByName = `${creatorUser.firstName} ${creatorUser.lastName}`.trim() || "Someone";
+
+  // Ensure recipient user exists
+  let recipientUser = await prisma.user.findUnique({
+    where: { id: recipientUserId },
+  });
+
+  if (!recipientUser) {
+    console.log(`[PlaylistService] Auto-creating recipient user: ${recipientUserId}`);
+    recipientUser = await prisma.user.create({
+      data: {
+        id: recipientUserId,
+        firstName: "Unknown",
+        lastName: "User",
+        email: `${recipientUserId}@sentio.app`,
+      },
+    });
+  }
+
+  const sharedPlaylist = await prisma.sharedPlaylist.create({
+    data: {
+      prompt: originalPlaylist.prompt,
+      title: originalPlaylist.title,
+      userId: recipientUserId,
+      originalCreatorId: originalPlaylist.userId,
+      originalPlaylistId: originalPlaylist.id,
+      sharedByName,
+      songs: {
+        create: originalPlaylist.songs.map((song) => ({
+          title: song.title,
+          artist: song.artist,
+          videoId: song.videoId,
+          thumbnail: song.thumbnail,
+        })),
+      },
+    },
+    include: {
+      songs: true,
+    },
+  });
+
+  return {
+    id: sharedPlaylist.id,
+    prompt: sharedPlaylist.prompt,
+    title: sharedPlaylist.title,
+    songs: sharedPlaylist.songs.map((song) => ({
+      title: song.title,
+      artist: song.artist,
+      videoId: song.videoId,
+      thumbnail: song.thumbnail || "",
+    })),
+    originalCreatorId: sharedPlaylist.originalCreatorId,
+    originalPlaylistId: sharedPlaylist.originalPlaylistId,
+    sharedByName: sharedPlaylist.sharedByName,
+    sharedAt: sharedPlaylist.sharedAt.toISOString(),
+  };
+}
+
+export async function getSharedPlaylistsByUserId(
+  userId: string,
+): Promise<SharedPlaylistResponse[]> {
+  const sharedPlaylists = await prisma.sharedPlaylist.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      songs: true,
+    },
+    orderBy: {
+      sharedAt: "desc",
+    },
+  });
+
+  return sharedPlaylists.map((playlist) => ({
+    id: playlist.id,
+    prompt: playlist.prompt,
+    title: playlist.title,
+    songs: playlist.songs.map((song) => ({
+      title: song.title,
+      artist: song.artist,
+      videoId: song.videoId,
+      thumbnail: song.thumbnail || "",
+    })),
+    originalCreatorId: playlist.originalCreatorId,
+    originalPlaylistId: playlist.originalPlaylistId,
+    sharedByName: playlist.sharedByName,
+    sharedAt: playlist.sharedAt.toISOString(),
   }));
 }

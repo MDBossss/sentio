@@ -124,11 +124,11 @@ export const MainApp = () => {
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <div className="flex flex-1 gap-6 p-6">
         <aside className="shrink-0">
-          <div id={libraryContainerId} className="h-full overflow-hidden" />
+          <div id={libraryContainerId} className="h-[calc(100vh-180px)] overflow-hidden" />
         </aside>
 
-        <main className="flex-1">
-          <div id={searchContainerId} className="h-full overflow-hidden" />
+        <main className="flex-1 flex flex-col min-h-0">
+          <div id={searchContainerId} className="h-[calc(100vh-180px)] overflow-y-auto scrollbar-hide" />
         </main>
       </div>
 
