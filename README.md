@@ -1,16 +1,17 @@
 # Sentio
 
-Music discovery and playlist management app built with Module Federation, featuring a Spotify-inspired layout with search, library, and player components.
-
 [![Contributors](https://img.shields.io/github/contributors/MDBossss/sentio?color=dark-green)](https://github.com/MDBossss/sentio/graphs/contributors)
 [![Issues](https://img.shields.io/github/issues/MDBossss/sentio)](https://github.com/MDBossss/sentio/issues)
 [![License](https://img.shields.io/github/license/MDBossss/sentio)](LICENSE)
 
-<!-- 
-Placeholder for app screenshots
-Add screenshots to /images folder and uncomment below:
-[![Screen Shot](/images/1.png)](/images/1.png) 
--->
+Music discovery and playlist management app built with Module Federation, featuring a Spotify-inspired layout with search, library, and player components.
+
+[![Screen Shot](/images/home-page.png)](/images/home-page.png)
+[![Screen Shot](/images/onboard-1.png)](/images/onboard-1.png)
+[![Screen Shot](/images/onboard-2.png)](/images/onboard-2.png)
+[![Screen Shot](/images/playlist-showcase.png)](/images/playlist-showcase.png)
+[![Screen Shot](/images/settings.png)](/images/settings.png)
+[![Screen Shot](/images/white-theme.png)](/images/white-theme.png)
 
 ## Technologies
 
