@@ -1,10 +1,20 @@
-# Sentio
+<h1 align="center">Sentio</h1>
 
-[![Contributors](https://img.shields.io/github/contributors/MDBossss/sentio?color=dark-green)](https://github.com/MDBossss/sentio/graphs/contributors)
-[![Issues](https://img.shields.io/github/issues/MDBossss/sentio)](https://github.com/MDBossss/sentio/issues)
-[![License](https://img.shields.io/github/license/MDBossss/sentio)](LICENSE)
+<p align="center">
+  Music discovery and playlist management app built with Module Federation, featuring a Spotify-inspired layout with search, library, and player components.
+</p>
 
-Music discovery and playlist management app built with Module Federation, featuring a Spotify-inspired layout with search, library, and player components.
+<p align="center">
+  <a href="https://github.com/MDBossss/sentio/graphs/contributors">
+    <img src="https://img.shields.io/github/contributors/MDBossss/sentio?color=dark-green" alt="Contributors">
+  </a>
+  <a href="https://github.com/MDBossss/sentio/issues">
+    <img src="https://img.shields.io/github/issues/MDBossss/sentio" alt="Issues">
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/github/license/MDBossss/sentio" alt="License">
+  </a>
+</p>
 
 [![Screen Shot](/images/home-page.png)](/images/home-page.png)
 [![Screen Shot](/images/onboard-1.png)](/images/onboard-1.png)
