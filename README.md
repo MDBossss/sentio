@@ -6,6 +6,12 @@ Music discovery and playlist management app built with Module Federation, featur
 [![Issues](https://img.shields.io/github/issues/MDBossss/sentio)](https://github.com/MDBossss/sentio/issues)
 [![License](https://img.shields.io/github/license/MDBossss/sentio)](LICENSE)
 
+<!-- 
+Placeholder for app screenshots
+Add screenshots to /images folder and uncomment below:
+[![Screen Shot](/images/1.png)](/images/1.png) 
+-->
+
 ## Technologies
 
 ### Frontend
