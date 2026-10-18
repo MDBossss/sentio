@@ -1,124 +1,139 @@
-<h1 align="center">Sentio</h1>
+<p align="center">
+  <img src="library-app/public/sentio-logo-nobg.png" alt="Sentio" width="300">
+</p>
+
+<h3 align="center">Music for how you actually feel.</h3>
 
 <p align="center">
-  Music discovery and playlist management app built with Module Federation, featuring a Spotify-inspired layout with search, library, and player components.
+  Describe your mood in a sentence and Sentio builds a playlist for it with AI, finds every song on YouTube and plays it right in the app.
 </p>
 
 <p align="center">
-  <a href="https://github.com/MDBossss/sentio/graphs/contributors">
-    <img src="https://img.shields.io/github/contributors/MDBossss/sentio?color=dark-green" alt="Contributors">
-  </a>
-  <a href="https://github.com/MDBossss/sentio/issues">
-    <img src="https://img.shields.io/github/issues/MDBossss/sentio" alt="Issues">
-  </a>
-  <a href="LICENSE">
-    <img src="https://img.shields.io/github/license/MDBossss/sentio" alt="License">
-  </a>
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React">
+  <img src="https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D" alt="Vue.js">
+  <img src="https://img.shields.io/badge/Solid.js-2C4F7C?style=for-the-badge&logo=solid&logoColor=white" alt="Solid.js">
+  <img src="https://img.shields.io/badge/Module_Federation-8DD6F9?style=for-the-badge&logo=webpack&logoColor=black" alt="Module Federation">
+  <br>
+  <img src="https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express">
+  <img src="https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma">
+  <img src="https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white" alt="OpenAI">
+  <img src="https://img.shields.io/badge/YouTube_API-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="YouTube API">
+  <img src="https://img.shields.io/badge/Clerk-6C47FF?style=for-the-badge&logo=clerk&logoColor=white" alt="Clerk">
 </p>
 
-[![Screen Shot](/images/home-page.png)](/images/home-page.png)
-[![Screen Shot](/images/onboard-1.png)](/images/onboard-1.png)
-[![Screen Shot](/images/onboard-2.png)](/images/onboard-2.png)
-[![Screen Shot](/images/playlist-showcase.png)](/images/playlist-showcase.png)
-[![Screen Shot](/images/settings.png)](/images/settings.png)
-[![Screen Shot](/images/white-theme.png)](/images/white-theme.png)
+![Sentio landing page](images/home-page.png)
 
-## Technologies
+## ✨ What it does
 
-### Frontend
+- **Mood to playlist.** Type how you feel ("rainy Sunday, slow coffee, nothing sad") and GPT-4o picks 10 songs that fit, with a short playlist title.
+- **Tuned to you.** On first sign-in you choose your genres and how adventurous you are: *Mainstream*, *Discovery* or *Mixed*. Every playlist follows those settings.
+- **Ready-made moods.** Presets change with your genres and the time of day, from "Pop morning energy" to late-night picks.
+- **Plays in the app.** Each song is matched to a YouTube video and plays in the player bar, with play, pause, skip, volume and progress.
+- **Your library.** Generated playlists are saved to your account, and any playlist can be shared with a link.
+- **Dark and light themes.**
 
-- React (Shell & Search App)
-- Vue.js (Library App)
-- Solid.js (Player App)
-- Tailwind CSS
-- TypeScript
-- Clerk (Authentication)
+## 🧩 How it works
 
-### Backend
-
-- Node.js
-- Express.js
-- Prisma
-- SQLite (dev) / MySQL (prod)
-
-## Project Structure
-
-```
-sentio/
-├── shell-app/           # Host app - Spotify-like layout
-├── search-app/          # Search & playlist management (React)
-├── library-app/         # User library sidebar (Vue.js)
-├── player-app/          # Music player footer (Solid.js)
-└── server/              # Express.js API + Prisma
+```mermaid
+flowchart LR
+    A["Your mood<br/>+ genres + familiarity"] --> B["Express API"]
+    B --> C["GPT-4o<br/>10 songs + title"]
+    C --> D["YouTube Data API<br/>find each video"]
+    D --> E[("Prisma<br/>SQLite / MySQL")]
+    E --> F["Player<br/>YouTube iframe"]
 ```
 
-## Features
+The frontend is four separate apps stitched together at runtime with **Webpack Module Federation**. Each one is written in a different framework, renders inside its own **Shadow DOM** so styles never leak, and they talk through a small shared event bus.
 
-- Module Federation micro-frontend architecture
-- Shadow DOM for style isolation
-- User authentication with Clerk
-- Playlist creation and management
-- Playlist sharing
-- Music playback controls
-- Dark/light theme toggle
-
-## Setting up environmental variables
-
-### Server
-
-Create a `.env` file inside the `server` directory:
-
-```
-DATABASE_URL=file:./dev.db
-PORT=3010
+```mermaid
+flowchart TB
+    subgraph Shell["shell-app · React · :3000"]
+      direction LR
+      L["library-app<br/>Vue · :3002<br/>sidebar"]
+      S["search-app<br/>React · :3001<br/>mood, presets, playlists"]
+    end
+    P["player-app · Solid · :3003<br/>player bar"]
+    Shell --- P
+    S -. playlist events .-> P
+    L -. playlist events .-> P
 ```
 
-### Shell App
+## 📸 Screenshots
 
-Create a `.env` file inside the `shell-app` directory:
+<table>
+  <tr>
+    <td width="50%"><img src="images/playlist-showcase.png" alt="A generated playlist playing"><p align="center"><b>A generated playlist, playing</b></p></td>
+    <td width="50%"><img src="images/onboard-1.png" alt="Choosing genres"><p align="center"><b>Onboarding: your genres</b></p></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="images/onboard-2.png" alt="Choosing familiarity"><p align="center"><b>Onboarding: mainstream or discovery</b></p></td>
+    <td width="50%"><img src="images/white-theme.png" alt="Light theme"><p align="center"><b>Light theme</b></p></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="images/settings.png" alt="Settings"><p align="center"><b>Settings</b></p></td>
+  </tr>
+</table>
 
-```
-VITE_CLERK_PUBLISHABLE_KEY=your_clerk_key
-```
+## 🚀 Getting started
 
-### Search App
+You need Node.js (see `.nvmrc`), a [Clerk](https://clerk.com) app, an OpenAI API key and a YouTube Data API key.
 
-Create a `.env` file inside the `search-app` directory:
-
-```
-VITE_API_BASE_URL=http://localhost:3010
-VITE_CLERK_PUBLISHABLE_KEY=your_clerk_key
-```
-
-## Installation
-
-1. Clone the repository
-2. Install dependencies for all apps:
+**1. Install everything**
 
 ```bash
 npm run install-all
 ```
 
-3. Set up environment variables (see above)
+**2. Add the environment files**
 
-4. Start the development servers:
+`server/.env`
+
+```env
+DATABASE_URL="file:./dev.db"
+PORT=3010
+NODE_ENV=development
+OPENAI_API_KEY=your_openai_api_key
+YOUTUBE_API_KEY=your_youtube_api_key
+```
+
+`shell-app/.env`
+
+```env
+REACT_APP_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+REACT_APP_API_BASE_URL=http://localhost:3010
+```
+
+`search-app/.env`
+
+```env
+REACT_APP_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+REACT_APP_API_BASE_URL=http://localhost:3010
+REACT_APP_BASE_URL=http://localhost:3000
+```
+
+**3. Set up the database and start**
 
 ```bash
+npm run prisma:migrate
 npm run start
 ```
 
-The app will be available at `http://localhost:3000`
+All four apps and the API start together. Open **http://localhost:3000**.
 
-## Contributing
+## 🗂️ Project structure
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+```
+sentio/
+├── shell-app/     React host: layout, routing, sign-in, onboarding, settings
+├── search-app/    React remote: mood prompt, presets, your and shared playlists
+├── library-app/   Vue remote: library sidebar
+├── player-app/    Solid remote: YouTube player bar
+└── server/        Express + Prisma API, OpenAI and YouTube services
+```
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## License
-
-Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
+| Script | What it does |
+|---|---|
+| `npm run start` | Starts every app and the API |
+| `npm run start:shell` (`:search`, `:library`, `:player`, `:server`) | Starts one part on its own |
+| `npm run build` | Builds all workspaces |
+| `npm run prisma:studio` | Opens the database in Prisma Studio |
