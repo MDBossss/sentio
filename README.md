@@ -46,16 +46,12 @@ flowchart LR
 The frontend is four separate apps stitched together at runtime with **Webpack Module Federation**. Each one is written in a different framework, renders inside its own **Shadow DOM** so styles never leak, and they talk through a small shared event bus.
 
 ```mermaid
-flowchart TB
-    subgraph Shell["shell-app · React · :3000"]
-      direction LR
-      L["library-app<br/>Vue · :3002<br/>sidebar"]
-      S["search-app<br/>React · :3001<br/>mood, presets, playlists"]
-    end
-    P["player-app · Solid · :3003<br/>player bar"]
-    Shell --- P
-    S -. playlist events .-> P
-    L -. playlist events .-> P
+flowchart LR
+    H["shell-app<br/>React host · :3000"] --> S["search-app<br/>React · :3001"]
+    H --> L["library-app<br/>Vue · :3002"]
+    H --> P["player-app<br/>Solid · :3003"]
+    S -. "play playlist" .-> P
+    L -. "play playlist" .-> P
 ```
 
 ## 📸 Screenshots
